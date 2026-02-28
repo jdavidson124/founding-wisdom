@@ -16,12 +16,10 @@
   :root {
     --ink: #1a1209;
     --parchment: #f5edd6;
-    --parchment-dark: #e8d9b5;
     --gold: #b8860b;
     --gold-light: #d4a017;
     --rust: #8b3a0f;
     --sage: #4a5e3a;
-    --cream: #fdf6e3;
   }
 
   * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -34,7 +32,6 @@
     overflow-x: hidden;
   }
 
-  /* Parchment texture background */
   body::before {
     content: '';
     position: fixed;
@@ -42,13 +39,7 @@
     background:
       radial-gradient(ellipse at 20% 20%, rgba(184,134,11,0.08) 0%, transparent 50%),
       radial-gradient(ellipse at 80% 80%, rgba(139,58,15,0.08) 0%, transparent 50%),
-      repeating-linear-gradient(
-        0deg,
-        transparent,
-        transparent 2px,
-        rgba(245,237,214,0.015) 2px,
-        rgba(245,237,214,0.015) 4px
-      );
+      repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(245,237,214,0.015) 2px, rgba(245,237,214,0.015) 4px);
     pointer-events: none;
     z-index: 0;
   }
@@ -61,7 +52,6 @@
     padding: 2rem 1.5rem 4rem;
   }
 
-  /* Header */
   header {
     text-align: center;
     padding: 2.5rem 0 2rem;
@@ -84,29 +74,22 @@
   }
 
   .app-label {
-    font-family: 'Crimson Pro', serif;
     font-size: 0.7rem;
     font-weight: 300;
     letter-spacing: 0.35em;
     text-transform: uppercase;
     color: var(--gold);
     margin-bottom: 0.75rem;
-    opacity: 0.9;
   }
 
   h1 {
     font-family: 'Playfair Display', serif;
     font-size: clamp(2rem, 6vw, 3.2rem);
     font-weight: 400;
-    letter-spacing: -0.01em;
     line-height: 1.1;
-    color: var(--parchment);
   }
 
-  h1 em {
-    font-style: italic;
-    color: var(--gold-light);
-  }
+  h1 em { font-style: italic; color: var(--gold-light); }
 
   .subtitle {
     margin-top: 0.75rem;
@@ -115,6 +98,55 @@
     color: rgba(245,237,214,0.6);
     letter-spacing: 0.05em;
   }
+
+  /* API Key Setup */
+  .api-setup {
+    background: rgba(184,134,11,0.07);
+    border: 1px solid rgba(184,134,11,0.3);
+    border-radius: 2px;
+    padding: 1.5rem;
+    margin-bottom: 1.5rem;
+  }
+
+  .api-setup-title {
+    font-family: 'Playfair Display', serif;
+    font-size: 1.1rem;
+    color: var(--gold-light);
+    margin-bottom: 0.5rem;
+  }
+
+  .api-setup p {
+    font-size: 0.88rem;
+    font-weight: 300;
+    color: rgba(245,237,214,0.65);
+    line-height: 1.6;
+    margin-bottom: 1rem;
+  }
+
+  .api-setup a { color: var(--gold-light); text-underline-offset: 3px; }
+
+  .api-input-row {
+    display: flex;
+    gap: 0.75rem;
+    flex-wrap: wrap;
+  }
+
+  .api-input {
+    flex: 1;
+    min-width: 200px;
+    padding: 0.75rem 1rem;
+    background: rgba(245,237,214,0.05);
+    border: 1px solid rgba(184,134,11,0.35);
+    border-radius: 1px;
+    color: var(--parchment);
+    font-family: 'Crimson Pro', serif;
+    font-size: 0.9rem;
+    outline: none;
+    transition: border-color 0.2s;
+  }
+
+  .api-input:focus { border-color: var(--gold); }
+  .api-input::placeholder { color: rgba(245,237,214,0.25); }
 
   /* Quote Card */
   .quote-card {
@@ -134,7 +166,7 @@
   }
 
   .quote-card::before {
-    content: '"';
+    content: '\201C';
     position: absolute;
     top: -0.5rem;
     left: 1.5rem;
@@ -162,13 +194,12 @@
     font-family: 'Playfair Display', serif;
     font-size: clamp(1.1rem, 3vw, 1.4rem);
     font-style: italic;
-    font-weight: 400;
     line-height: 1.65;
     color: var(--parchment);
     margin-bottom: 0.75rem;
   }
 
-  .quote-date {
+  .quote-meta {
     font-size: 0.75rem;
     color: rgba(245,237,214,0.35);
     letter-spacing: 0.15em;
@@ -231,6 +262,39 @@
     font-style: italic;
   }
 
+  /* Loading state */
+  .loading-state {
+    text-align: center;
+    padding: 3rem 1rem;
+  }
+
+  .quill-spinner {
+    display: inline-block;
+    font-size: 2rem;
+    animation: quillBob 1.2s ease-in-out infinite;
+    margin-bottom: 1rem;
+  }
+
+  @keyframes quillBob {
+    0%, 100% { transform: translateY(0) rotate(-15deg); }
+    50% { transform: translateY(-8px) rotate(-5deg); }
+  }
+
+  .loading-text {
+    font-size: 0.85rem;
+    font-weight: 300;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: rgba(245,237,214,0.4);
+  }
+
+  .loading-subtext {
+    font-size: 0.75rem;
+    color: rgba(245,237,214,0.25);
+    margin-top: 0.4rem;
+    font-style: italic;
+  }
+
   /* Controls */
   .controls {
     display: flex;
@@ -244,7 +308,7 @@
 
   .btn {
     flex: 1;
-    min-width: 140px;
+    min-width: 130px;
     padding: 0.85rem 1.5rem;
     font-family: 'Crimson Pro', serif;
     font-size: 0.85rem;
@@ -272,6 +336,7 @@
 
   .btn:hover::before { transform: scaleX(1); }
   .btn:hover { border-color: var(--gold); color: var(--gold-light); }
+  .btn:disabled { opacity: 0.4; cursor: not-allowed; }
 
   .btn-primary {
     background: rgba(184,134,11,0.15);
@@ -280,7 +345,7 @@
   }
   .btn-primary:hover { background: rgba(184,134,11,0.25); }
 
-  /* Notification status */
+  /* Status bar */
   .status-bar {
     text-align: center;
     padding: 1rem;
@@ -289,29 +354,17 @@
     letter-spacing: 0.1em;
     border: 1px solid rgba(184,134,11,0.15);
     border-radius: 1px;
-    margin-bottom: 2rem;
-    animation: fadeUp 0.8s 0.4s ease forwards;
+    margin-bottom: 1.5rem;
+    animation: fadeUp 0.8s 0.3s ease forwards;
     opacity: 0;
     transform: translateY(20px);
   }
 
-  .status-bar.active {
-    border-color: rgba(74,94,58,0.5);
-    background: rgba(74,94,58,0.08);
-    color: #8ab87a;
-  }
+  .status-bar.active { border-color: rgba(74,94,58,0.5); background: rgba(74,94,58,0.08); color: #8ab87a; }
+  .status-bar.inactive { color: rgba(245,237,214,0.4); }
+  .status-bar.error { border-color: rgba(139,58,15,0.5); background: rgba(139,58,15,0.08); color: #d4875a; }
 
-  .status-bar.inactive {
-    color: rgba(245,237,214,0.4);
-  }
-
-  .status-bar.error {
-    border-color: rgba(139,58,15,0.5);
-    background: rgba(139,58,15,0.08);
-    color: #d4875a;
-  }
-
-  /* People list */
+  /* Voices */
   .voices-section {
     animation: fadeUp 0.8s 0.5s ease forwards;
     opacity: 0;
@@ -340,7 +393,6 @@
     border: 1px solid rgba(184,134,11,0.2);
     border-radius: 20px;
     color: rgba(245,237,214,0.55);
-    letter-spacing: 0.05em;
   }
 
   /* Install banner */
@@ -355,11 +407,23 @@
     font-weight: 300;
     line-height: 1.6;
     color: rgba(245,237,214,0.7);
-    animation: fadeUp 0.8s ease forwards;
   }
 
   .install-banner.show { display: block; }
   .install-banner strong { color: var(--gold-light); }
+
+  .ai-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    font-size: 0.6rem;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: rgba(184,134,11,0.5);
+    margin-top: 1rem;
+  }
+
+  .ai-badge::before { content: '✦'; font-size: 0.5rem; }
 
   footer {
     text-align: center;
@@ -381,31 +445,50 @@
   </header>
 
   <div id="installBanner" class="install-banner">
-    <strong>📱 To receive daily notifications:</strong> tap the Share button in your browser, then choose <strong>"Add to Home Screen"</strong>. Then open the app from your home screen and enable notifications.
+    <strong>📱 To receive daily notifications:</strong> tap the Share button, choose <strong>"Add to Home Screen"</strong>, then open the app from your home screen and enable notifications.
   </div>
 
-  <div id="statusBar" class="status-bar inactive">
-    ○ &nbsp;Notifications not enabled
+  <!-- One-time API key setup -->
+  <div class="api-setup" id="apiSetup" style="display:none">
+    <div class="api-setup-title">🗝 One-time Setup</div>
+    <p>This app uses Claude AI to generate a brand new quote every day — never repeating. You'll need a free Anthropic API key. <a href="https://console.anthropic.com" target="_blank">Get one at console.anthropic.com</a> — the free tier works perfectly.</p>
+    <p>Your key is stored <strong>only on this device</strong> and sent directly to Anthropic — nowhere else.</p>
+    <div class="api-input-row">
+      <input class="api-input" type="password" id="apiKeyInput" placeholder="sk-ant-api03-..."/>
+      <button class="btn btn-primary" id="btnSaveKey">Save Key</button>
+    </div>
   </div>
+
+  <div id="statusBar" class="status-bar inactive">○ &nbsp;Notifications not enabled</div>
 
   <div class="controls">
-    <button class="btn btn-primary" id="btnEnable">Enable Daily Notifications</button>
-    <button class="btn" id="btnNew">New Quote</button>
+    <button class="btn btn-primary" id="btnEnable">Enable Notifications</button>
+    <button class="btn" id="btnRefresh">New Quote</button>
     <button class="btn" id="btnPreview">Preview Notification</button>
   </div>
 
   <div class="quote-card" id="quoteCard">
-    <div class="author-tag" id="authorTag">Loading...</div>
-    <div class="original-quote" id="originalQuote"></div>
-    <div class="quote-date" id="quoteDate"></div>
+    <div class="loading-state" id="loadingState">
+      <div class="quill-spinner">🪶</div>
+      <div class="loading-text">Consulting the founders...</div>
+      <div class="loading-subtext">Generating today's quote</div>
+    </div>
 
-    <div class="divider"><span>Modern Translation</span></div>
-    <p class="section-label">What they were saying</p>
-    <div class="modern-translation" id="modernTranslation"></div>
+    <div id="quoteContent" style="display:none">
+      <div class="author-tag" id="authorTag"></div>
+      <div class="original-quote" id="originalQuote"></div>
+      <div class="quote-meta" id="quoteMeta"></div>
 
-    <div class="context-box">
-      <p class="section-label">Historical Context</p>
-      <p class="context-text" id="contextText"></p>
+      <div class="divider"><span>Modern Translation</span></div>
+      <p class="section-label">What they were saying</p>
+      <div class="modern-translation" id="modernTranslation"></div>
+
+      <div class="context-box">
+        <p class="section-label">Historical Context</p>
+        <p class="context-text" id="contextText"></p>
+      </div>
+
+      <div class="ai-badge">Generated by Claude AI · Refreshes daily</div>
     </div>
   </div>
 
@@ -424,151 +507,128 @@
 </div>
 
 <script>
-const QUOTES = [
-  {
-    author: "Abraham Lincoln",
-    quote: "Give me six hours to chop down a tree and I will spend the first four sharpening the axe.",
-    date: "c. 1840s",
-    modern: "Preparation beats rushing in. If you invest most of your time getting ready — sharpening your skills, planning, thinking — the actual work becomes far easier and more effective.",
-    context: "Lincoln was largely self-educated and known for meticulous preparation in law and politics. Though this quote's exact origin is debated, it captures his deep belief that thoughtful groundwork was the real key to any success."
-  },
-  {
-    author: "Abraham Lincoln",
-    quote: "Whatever you are, be a good one.",
-    date: "c. 1858",
-    modern: "Whatever path you choose in life — tradesperson, parent, artist, leader — pursue it with genuine excellence and integrity rather than half-heartedly.",
-    context: "Lincoln said this during an era of rapid industrialization when many Americans were questioning their place in a changing economy. He consistently emphasized character over status."
-  },
-  {
-    author: "Abraham Lincoln",
-    quote: "Nearly all men can stand adversity, but if you want to test a man's character, give him power.",
-    date: "c. 1860",
-    modern: "Hardship reveals endurance, but power reveals who someone truly is. The real test of character isn't how you handle struggle — it's what you do when nobody can stop you.",
-    context: "Lincoln observed this as he navigated a fractious cabinet, a divided nation, and generals who often defied him. He himself was frequently described as unusually humble and principled despite wielding enormous wartime authority."
-  },
-  {
-    author: "Thomas Paine",
-    quote: "These are the times that try men's souls.",
-    date: "December 1776",
-    modern: "We are living through a moment that will define us — a crisis that separates those who are truly committed from those who only showed up when things were easy.",
-    context: "Paine wrote this in 'The American Crisis' as Washington's army was retreating across New Jersey, demoralized and dwindling. Washington actually had it read aloud to troops before the pivotal crossing of the Delaware River on Christmas night, 1776."
-  },
-  {
-    author: "Thomas Paine",
-    quote: "The mind, once enlightened, cannot again become dark.",
-    date: "1782",
-    modern: "Once you truly understand something — once you've genuinely seen the truth — you can't just choose to un-know it. Knowledge changes you permanently.",
-    context: "Paine wrote this in 'A Letter Addressed to the Abbé Raynal,' arguing that the American Revolution had unleashed ideas about liberty and human rights that could never be suppressed again, even by the most powerful governments."
-  },
-  {
-    author: "Thomas Paine",
-    quote: "Reputation is what men and women think of us; character is what God and angels know of us.",
-    date: "c. 1794",
-    modern: "Your reputation is just other people's opinion of you — it can be manufactured or destroyed by rumor. Your character is who you actually are when no one's watching. Focus on the second one.",
-    context: "Paine wrote this during a period when he was widely vilified in America after publishing 'The Age of Reason,' a deist critique of organized religion. He had gone from celebrated revolutionary to social outcast, and was reflecting on the gap between public perception and private integrity."
-  },
-  {
-    author: "Samuel Adams",
-    quote: "It does not take a majority to prevail... but rather an irate, tireless minority, keen on setting brushfires of freedom in the minds of men.",
-    date: "c. 1772",
-    modern: "You don't need everyone on your side to create change. A small, deeply committed group that refuses to quit can shift how whole societies think — one conversation, one article, one bold act at a time.",
-    context: "Adams wrote this as a key organizer of the Sons of Liberty and the Committees of Correspondence — colonial communication networks he built to spread revolutionary ideas. He understood that political transformation begins with changing minds before it changes laws."
-  },
-  {
-    author: "Samuel Adams",
-    quote: "If ye love wealth better than liberty, the tranquility of servitude better than the animating contest of freedom, go home from us in peace.",
-    date: "August 1, 1776",
-    modern: "If you'd rather be comfortable and controlled than free and responsible, that's your choice — but own it. Don't stand among people fighting for self-determination if you'd secretly prefer someone else to make your decisions.",
-    context: "Adams delivered this speech at the State House in Philadelphia just weeks after the Declaration of Independence was signed. It was a direct challenge to colonists who were waffling on independence because they feared economic disruption or British retaliation."
-  },
-  {
-    author: "Samuel Adams",
-    quote: "The liberties of our country, the freedom of our civil Constitution, are worth defending at all hazards.",
-    date: "1771",
-    modern: "The freedoms written into our laws aren't just nice to have — they're worth real sacrifice to protect. Complacency is how rights disappear.",
-    context: "Adams wrote this in the Boston Gazette during a period of escalating tension between the colonies and Britain over taxation and representation. He was trying to wake up colonists who had become passive in the face of creeping authoritarian policies."
-  },
-  {
-    author: "Mercy Otis Warren",
-    quote: "The origin of all power is in the people, and they have an incontestable right to check the creatures of their own creation.",
-    date: "1788",
-    modern: "All government power ultimately comes from ordinary citizens — and that means citizens have every right to criticize, challenge, and hold accountable the officials they've put in power. Leaders work for us, not the other way around.",
-    context: "Warren wrote this in her anti-Federalist pamphlet 'Observations on the New Constitution,' arguing against ratifying the proposed U.S. Constitution without a Bill of Rights. She feared a strong central government could become tyrannical — a view that ultimately led to the first ten amendments."
-  },
-  {
-    author: "Mercy Otis Warren",
-    quote: "It is necessary for every American, with becoming energy, to endeavor to stop the dissemination of principles evidently injurious to the peace and good order of society.",
-    date: "1805",
-    modern: "Every citizen has a responsibility to actively push back against ideas that undermine the fabric of a just society. Silence isn't neutrality — it's permission.",
-    context: "Warren wrote this in her landmark three-volume 'History of the Rise, Progress and Termination of the American Revolution' — one of the first major historical accounts of the Revolution written by an American. As a woman in an era when women rarely published under their own names, she understood that civic courage was everyone's duty."
-  },
-  {
-    author: "Mercy Otis Warren",
-    quote: "Patriotism may be the last refuge of the scoundrel, but it is the first duty of the honest citizen.",
-    date: "c. 1790s",
-    modern: "Yes, politicians and fraudsters abuse the word 'patriotism' to manipulate people — but that's all the more reason for genuinely principled people to demonstrate what real love of country actually looks like through action.",
-    context: "Warren was deeply skeptical of those who wrapped themselves in patriotic language while pursuing personal gain — she had watched it happen throughout the Revolution. She believed authentic civic devotion was proven through sacrifice and honesty, not rhetoric."
-  },
-  {
-    author: "William Lloyd Garrison",
-    quote: "I am in earnest — I will not equivocate — I will not excuse — I will not retreat a single inch — and I will be heard.",
-    date: "January 1, 1831",
-    modern: "I'm not bluffing, I'm not softening my message for comfort, I'm not walking anything back — and I refuse to be ignored. This matters too much for politeness.",
-    context: "These were the opening words of the very first issue of 'The Liberator,' Garrison's abolitionist newspaper published out of Boston. He was 25 years old, had no money, and was widely dismissed — but The Liberator ran for 35 years until slavery was abolished. It became one of the most influential publications in American history."
-  },
-  {
-    author: "William Lloyd Garrison",
-    quote: "With reasonable men, I will reason; with humane men I will plead; but to tyrants I will give no quarter, nor waste arguments where they will certainly be lost.",
-    date: "c. 1835",
-    modern: "I'll debate thoughtfully with people who are genuinely open to reason. I'll appeal to the conscience of those who have empathy. But I won't waste my energy trying to politely convince someone who is deliberately, knowingly causing harm.",
-    context: "Garrison said this as he was facing escalating violence from pro-slavery mobs — including being dragged through the streets of Boston by a rope in 1835. He was developing a strategic philosophy about when dialogue works and when a moral stand must be unconditional."
-  },
-  {
-    author: "William Lloyd Garrison",
-    quote: "Wherever there is a human being, I see God-given rights inherent in that being, whatever may be the sex or complexion.",
-    date: "c. 1838",
-    modern: "Every single person — regardless of gender, race, or background — is born with fundamental rights that no law, culture, or tradition can legitimately take away.",
-    context: "Garrison said this at a time when he was expanding his activism beyond abolition to explicitly include women's rights — a controversial move that alienated some of his abolitionist allies. He was one of the few male public figures of his era to speak at women's rights conventions and argue unambiguously for gender equality."
+const SYSTEM_PROMPT = `You are a historian and plain-language educator. Select a real, historically verified quote from one of these five figures: Abraham Lincoln, Thomas Paine, Samuel Adams, Mercy Otis Warren, or William Lloyd Garrison.
+
+Rotate through them so each person is featured roughly equally over time. Use today's date to help vary the selection. Pick meaningful but lesser-known quotes — avoid the most clichéd famous ones everyone already knows.
+
+Respond ONLY with a valid JSON object, no markdown, no backticks, no explanation:
+{
+  "author": "Full name",
+  "quote": "The exact historical quote",
+  "date": "Approximate date or year (e.g. 'December 1776' or 'c. 1772')",
+  "modern": "A plain, conversational rewrite of what they meant in today's language — 2 to 4 sentences",
+  "context": "2 to 3 sentences of historical context: what was happening at the time, why they said it, why it mattered"
+}`;
+
+// ─── Storage helpers ──────────────────────────────────────────
+const saveKey  = k  => localStorage.setItem('fw_api_key', k);
+const getKey   = () => localStorage.getItem('fw_api_key') || '';
+const todayKey = () => {
+  const d = new Date();
+  return `fw_quote_${d.getFullYear()}_${d.getMonth()}_${d.getDate()}`;
+};
+const getCache  = () => { try { return JSON.parse(localStorage.getItem(todayKey())); } catch { return null; } };
+const setCache  = q  => localStorage.setItem(todayKey(), JSON.stringify(q));
+
+// ─── Fetch quote from Claude API ──────────────────────────────
+async function fetchQuote(forceNew = false) {
+  const apiKey = getKey();
+  if (!apiKey) { showSetup(); return; }
+
+  if (!forceNew) {
+    const cached = getCache();
+    if (cached) { renderQuote(cached); return; }
   }
-];
 
-// ─── State ───────────────────────────────────────────────────
-let currentIndex = getDailyIndex();
-let notificationsEnabled = false;
-let swRegistration = null;
+  showLoading();
 
-function getDailyIndex() {
-  const day = Math.floor(Date.now() / 86400000);
-  return day % QUOTES.length;
+  const today = new Date().toDateString();
+  try {
+    const res = await fetch("https://api.anthropic.com/v1/messages", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "x-api-key": apiKey,
+        "anthropic-version": "2023-06-01",
+        "anthropic-dangerous-direct-browser-access": "true"
+      },
+      body: JSON.stringify({
+        model: "claude-sonnet-4-20250514",
+        max_tokens: 1000,
+        system: SYSTEM_PROMPT,
+        messages: [{
+          role: "user",
+          content: `Today is ${today}. Give me today's daily quote — choose a different person than yesterday if possible. Make it a quote that feels fresh and meaningful, not the one everyone already knows.`
+        }]
+      })
+    });
+
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({}));
+      throw new Error(err.error?.message || `API error ${res.status}`);
+    }
+
+    const data = await res.json();
+    const raw = data.content.map(b => b.text || '').join('').replace(/```json|```/g, '').trim();
+    const quote = JSON.parse(raw);
+
+    setCache(quote);
+    renderQuote(quote);
+  } catch(err) {
+    showError(err.message);
+  }
 }
 
-function getQuoteForDay() {
-  return QUOTES[getDailyIndex()];
-}
-
-// ─── Render ───────────────────────────────────────────────────
+// ─── UI helpers ───────────────────────────────────────────────
 function renderQuote(q) {
+  document.getElementById('loadingState').style.display = 'none';
+  const content = document.getElementById('quoteContent');
+  content.style.display = 'block';
   document.getElementById('authorTag').textContent = q.author;
-  document.getElementById('originalQuote').textContent = `"${q.quote}"`;
-  document.getElementById('quoteDate').textContent = q.date;
+  document.getElementById('originalQuote').textContent = `\u201C${q.quote}\u201D`;
+  document.getElementById('quoteMeta').textContent = q.date;
   document.getElementById('modernTranslation').textContent = q.modern;
   document.getElementById('contextText').textContent = q.context;
 
-  // Re-trigger animation
   const card = document.getElementById('quoteCard');
   card.style.animation = 'none';
-  card.offsetHeight; // reflow
+  card.offsetHeight;
   card.style.animation = '';
 }
 
-function showRandomQuote() {
-  let next;
-  do { next = Math.floor(Math.random() * QUOTES.length); } while (next === currentIndex);
-  currentIndex = next;
-  renderQuote(QUOTES[currentIndex]);
+function showLoading() {
+  document.getElementById('loadingState').style.display = 'block';
+  document.getElementById('quoteContent').style.display = 'none';
+  document.getElementById('loadingState').innerHTML = `
+    <div class="quill-spinner">🪶</div>
+    <div class="loading-text">Consulting the founders...</div>
+    <div class="loading-subtext">Generating today's quote</div>
+  `;
 }
 
-// ─── Notifications ───────────────────────────────────────────
+function showError(msg) {
+  document.getElementById('loadingState').style.display = 'block';
+  document.getElementById('quoteContent').style.display = 'none';
+  document.getElementById('loadingState').innerHTML = `
+    <div style="font-size:1.5rem;margin-bottom:0.75rem">⚠️</div>
+    <div class="loading-text" style="color:#d4875a">Something went wrong</div>
+    <div class="loading-subtext" style="color:rgba(212,135,90,0.6);margin-bottom:1.5rem">${msg}</div>
+    <button class="btn" onclick="fetchQuote(true)" style="flex:none;margin:0 auto">Try Again</button>
+  `;
+}
+
+function showSetup() {
+  document.getElementById('apiSetup').style.display = 'block';
+  document.getElementById('loadingState').innerHTML = `
+    <div style="font-size:1.5rem;margin-bottom:0.75rem">🗝</div>
+    <div class="loading-text">API key needed</div>
+    <div class="loading-subtext">Enter your Anthropic API key above to get started</div>
+  `;
+}
+
+// ─── Notifications ────────────────────────────────────────────
+let swReg = null;
+
 function updateStatus(state, msg) {
   const bar = document.getElementById('statusBar');
   bar.className = `status-bar ${state}`;
@@ -577,136 +637,108 @@ function updateStatus(state, msg) {
 
 async function registerSW() {
   if (!('serviceWorker' in navigator)) return null;
-  try {
-    const reg = await navigator.serviceWorker.register('./service-worker.js');
-    return reg;
-  } catch(e) {
-    console.error('SW registration failed:', e);
-    return null;
-  }
+  try { return await navigator.serviceWorker.register('./service-worker.js'); }
+  catch(e) { console.error(e); return null; }
 }
 
 async function enableNotifications() {
-  if (!('Notification' in window)) {
-    updateStatus('error', 'This browser does not support notifications');
-    return;
-  }
-
+  if (!('Notification' in window)) { updateStatus('error', 'Browser does not support notifications'); return; }
   const perm = await Notification.requestPermission();
-  if (perm !== 'granted') {
-    updateStatus('error', 'Notification permission denied — please allow it in browser settings');
-    return;
-  }
-
-  swRegistration = await registerSW();
-  if (!swRegistration) {
-    updateStatus('error', 'Service Worker not supported — try adding app to home screen');
-    return;
-  }
-
-  notificationsEnabled = true;
-  localStorage.setItem('notifs_enabled', '1');
-  scheduleNextNotification();
+  if (perm !== 'granted') { updateStatus('error', 'Permission denied — allow notifications in browser settings'); return; }
+  swReg = await registerSW();
+  if (!swReg) { updateStatus('error', 'Service Worker not supported — try adding app to home screen first'); return; }
+  localStorage.setItem('fw_notifs', '1');
+  scheduleNext();
   updateStatus('active', 'Daily notifications enabled — 7 AM Pacific every day');
 }
 
-function getNextSevenAMPST() {
-  const now = new Date();
-  // PST = UTC-8, PDT = UTC-7 (approx via standard offset)
-  const offsetHours = isPDT(now) ? -7 : -8;
-  const utcMs = now.getTime() + now.getTimezoneOffset() * 60000;
-  const pstMs = utcMs + offsetHours * 3600000;
-  const pstNow = new Date(pstMs);
-
-  let target = new Date(pstMs);
-  target.setHours(7, 0, 0, 0);
-  if (pstNow.getHours() >= 7) {
-    target.setDate(target.getDate() + 1);
-  }
-
-  // Convert back to local ms
-  const targetLocalMs = target.getTime() - offsetHours * 3600000 - now.getTimezoneOffset() * 60000;
-  return targetLocalMs - Date.now();
-}
-
 function isPDT(date) {
-  // PDT: 2nd Sunday March → 1st Sunday November
-  const year = date.getFullYear();
-  const start = getNthSunday(year, 2, 2); // 2nd Sunday of March (month 2 = March, 0-indexed)
-  const end = getNthSunday(year, 10, 1);  // 1st Sunday of November
-  return date >= start && date < end;
+  const y = date.getFullYear();
+  const mkSun = (mo, n) => {
+    const d = new Date(y, mo, 1);
+    d.setDate((7 - d.getDay()) % 7 + (n - 1) * 7 + 1);
+    return d;
+  };
+  return date >= mkSun(2, 2) && date < mkSun(10, 1);
 }
 
-function getNthSunday(year, month, n) {
-  const d = new Date(year, month, 1);
-  const firstSunday = (7 - d.getDay()) % 7;
-  d.setDate(firstSunday + (n - 1) * 7 + 1);
-  return d;
+function msUntilSevenAMPST() {
+  const now = new Date();
+  const off = isPDT(now) ? -7 : -8;
+  const utc = now.getTime() + now.getTimezoneOffset() * 60000;
+  const pst = utc + off * 3600000;
+  const pstNow = new Date(pst);
+  const target = new Date(pst);
+  target.setHours(7, 0, 0, 0);
+  if (pstNow.getHours() >= 7) target.setDate(target.getDate() + 1);
+  const targetLocal = target.getTime() - off * 3600000 - now.getTimezoneOffset() * 60000;
+  return Math.max(targetLocal - Date.now(), 5000);
 }
 
-function scheduleNextNotification() {
-  const msUntil = getNextSevenAMPST();
-  const hours = Math.round(msUntil / 3600000);
-  console.log(`Next notification in ~${hours} hours`);
-
-  setTimeout(() => {
+function scheduleNext() {
+  const ms = msUntilSevenAMPST();
+  console.log(`Next quote notification in ~${Math.round(ms / 3600000)}h`);
+  setTimeout(async () => {
+    await fetchQuote(true); // Force fresh quote for the new day
     sendNotification();
-    scheduleNextNotification(); // reschedule daily
-  }, msUntil);
+    scheduleNext();
+  }, ms);
 }
 
 function sendNotification() {
-  const q = getQuoteForDay();
-  if (!swRegistration || !swRegistration.active) return;
-  swRegistration.active.postMessage({
+  const q = getCache();
+  if (!swReg?.active || !q) return;
+  swReg.active.postMessage({
     type: 'SHOW_NOTIFICATION',
-    title: `${q.author}`,
-    body: `"${q.quote.substring(0, 100)}${q.quote.length > 100 ? '…' : ''}" — Open app for modern translation & context.`
+    title: `Today's Wisdom · ${q.author}`,
+    body: `"${q.quote.substring(0, 110)}${q.quote.length > 110 ? '…' : ''}" — Open for modern translation & context.`
   });
 }
 
-function previewNotification() {
-  const q = QUOTES[currentIndex];
-  if (!notificationsEnabled) {
-    alert('Please enable notifications first, then try preview again.');
-    return;
-  }
-  if (swRegistration && swRegistration.active) {
-    swRegistration.active.postMessage({
-      type: 'SHOW_NOTIFICATION',
-      title: `${q.author}`,
-      body: `"${q.quote.substring(0, 100)}${q.quote.length > 100 ? '…' : ''}" — Open for full context.`
-    });
-  }
-}
-
-// ─── iOS install prompt ────────────────────────────────────────
+// ─── iOS install banner ───────────────────────────────────────
 function checkInstallPrompt() {
   const isIOS = /iphone|ipad|ipod/i.test(navigator.userAgent);
   const isStandalone = window.navigator.standalone === true;
-  if (isIOS && !isStandalone) {
-    document.getElementById('installBanner').classList.add('show');
-  }
+  if (isIOS && !isStandalone) document.getElementById('installBanner').classList.add('show');
 }
 
 // ─── Init ─────────────────────────────────────────────────────
 async function init() {
-  renderQuote(QUOTES[currentIndex]);
   checkInstallPrompt();
 
-  // Restore state
-  if (localStorage.getItem('notifs_enabled') === '1' && Notification.permission === 'granted') {
-    swRegistration = await registerSW();
-    if (swRegistration) {
-      notificationsEnabled = true;
-      scheduleNextNotification();
+  const apiKey = getKey();
+  if (apiKey) {
+    fetchQuote(false);
+  } else {
+    showSetup();
+  }
+
+  // Restore notification schedule if previously enabled
+  if (localStorage.getItem('fw_notifs') === '1' && Notification.permission === 'granted') {
+    swReg = await registerSW();
+    if (swReg) {
+      scheduleNext();
       updateStatus('active', 'Daily notifications enabled — 7 AM Pacific every day');
     }
   }
 
+  document.getElementById('btnSaveKey').addEventListener('click', () => {
+    const k = document.getElementById('apiKeyInput').value.trim();
+    if (!k.startsWith('sk-ant')) {
+      alert('That doesn\'t look right — Anthropic API keys start with sk-ant-...');
+      return;
+    }
+    saveKey(k);
+    document.getElementById('apiSetup').style.display = 'none';
+    fetchQuote(false);
+  });
+
   document.getElementById('btnEnable').addEventListener('click', enableNotifications);
-  document.getElementById('btnNew').addEventListener('click', showRandomQuote);
-  document.getElementById('btnPreview').addEventListener('click', previewNotification);
+  document.getElementById('btnRefresh').addEventListener('click', () => fetchQuote(true));
+  document.getElementById('btnPreview').addEventListener('click', () => {
+    if (!localStorage.getItem('fw_notifs')) { alert('Enable notifications first, then try preview.'); return; }
+    sendNotification();
+  });
 }
 
 init();
