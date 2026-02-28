@@ -1,0 +1,715 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<meta name="theme-color" content="#1a1209"/>
+<meta name="apple-mobile-web-app-capable" content="yes"/>
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"/>
+<meta name="apple-mobile-web-app-title" content="Founding Wisdom"/>
+<link rel="manifest" href="manifest.json"/>
+<title>Founding Wisdom</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;1,400&family=Crimson+Pro:ital,wght@0,300;0,400;1,300&display=swap" rel="stylesheet"/>
+
+<style>
+  :root {
+    --ink: #1a1209;
+    --parchment: #f5edd6;
+    --parchment-dark: #e8d9b5;
+    --gold: #b8860b;
+    --gold-light: #d4a017;
+    --rust: #8b3a0f;
+    --sage: #4a5e3a;
+    --cream: #fdf6e3;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    background: var(--ink);
+    color: var(--parchment);
+    font-family: 'Crimson Pro', Georgia, serif;
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  /* Parchment texture background */
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background:
+      radial-gradient(ellipse at 20% 20%, rgba(184,134,11,0.08) 0%, transparent 50%),
+      radial-gradient(ellipse at 80% 80%, rgba(139,58,15,0.08) 0%, transparent 50%),
+      repeating-linear-gradient(
+        0deg,
+        transparent,
+        transparent 2px,
+        rgba(245,237,214,0.015) 2px,
+        rgba(245,237,214,0.015) 4px
+      );
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  .container {
+    position: relative;
+    z-index: 1;
+    max-width: 700px;
+    margin: 0 auto;
+    padding: 2rem 1.5rem 4rem;
+  }
+
+  /* Header */
+  header {
+    text-align: center;
+    padding: 2.5rem 0 2rem;
+    border-bottom: 1px solid rgba(184,134,11,0.3);
+    margin-bottom: 2.5rem;
+    position: relative;
+  }
+
+  header::after {
+    content: '✦ ✦ ✦';
+    position: absolute;
+    bottom: -0.6rem;
+    left: 50%;
+    transform: translateX(-50%);
+    background: var(--ink);
+    padding: 0 1rem;
+    font-size: 0.6rem;
+    color: var(--gold);
+    letter-spacing: 0.4em;
+  }
+
+  .app-label {
+    font-family: 'Crimson Pro', serif;
+    font-size: 0.7rem;
+    font-weight: 300;
+    letter-spacing: 0.35em;
+    text-transform: uppercase;
+    color: var(--gold);
+    margin-bottom: 0.75rem;
+    opacity: 0.9;
+  }
+
+  h1 {
+    font-family: 'Playfair Display', serif;
+    font-size: clamp(2rem, 6vw, 3.2rem);
+    font-weight: 400;
+    letter-spacing: -0.01em;
+    line-height: 1.1;
+    color: var(--parchment);
+  }
+
+  h1 em {
+    font-style: italic;
+    color: var(--gold-light);
+  }
+
+  .subtitle {
+    margin-top: 0.75rem;
+    font-size: 0.95rem;
+    font-weight: 300;
+    color: rgba(245,237,214,0.6);
+    letter-spacing: 0.05em;
+  }
+
+  /* Quote Card */
+  .quote-card {
+    background: linear-gradient(135deg, rgba(245,237,214,0.06) 0%, rgba(245,237,214,0.02) 100%);
+    border: 1px solid rgba(184,134,11,0.25);
+    border-radius: 2px;
+    padding: 2.5rem 2rem;
+    margin-bottom: 1.5rem;
+    position: relative;
+    animation: fadeUp 0.8s ease forwards;
+    opacity: 0;
+    transform: translateY(20px);
+  }
+
+  @keyframes fadeUp {
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  .quote-card::before {
+    content: '"';
+    position: absolute;
+    top: -0.5rem;
+    left: 1.5rem;
+    font-family: 'Playfair Display', serif;
+    font-size: 5rem;
+    color: var(--gold);
+    opacity: 0.2;
+    line-height: 1;
+  }
+
+  .author-tag {
+    display: inline-block;
+    font-size: 0.65rem;
+    font-weight: 400;
+    letter-spacing: 0.3em;
+    text-transform: uppercase;
+    color: var(--gold);
+    border: 1px solid rgba(184,134,11,0.4);
+    padding: 0.2rem 0.75rem;
+    margin-bottom: 1.5rem;
+    border-radius: 1px;
+  }
+
+  .original-quote {
+    font-family: 'Playfair Display', serif;
+    font-size: clamp(1.1rem, 3vw, 1.4rem);
+    font-style: italic;
+    font-weight: 400;
+    line-height: 1.65;
+    color: var(--parchment);
+    margin-bottom: 0.75rem;
+  }
+
+  .quote-date {
+    font-size: 0.75rem;
+    color: rgba(245,237,214,0.35);
+    letter-spacing: 0.15em;
+    margin-bottom: 1.75rem;
+  }
+
+  .divider {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    margin: 1.5rem 0;
+  }
+
+  .divider::before, .divider::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: rgba(184,134,11,0.2);
+  }
+
+  .divider span {
+    font-size: 0.6rem;
+    letter-spacing: 0.3em;
+    text-transform: uppercase;
+    color: var(--gold);
+    opacity: 0.7;
+  }
+
+  .section-label {
+    font-size: 0.6rem;
+    letter-spacing: 0.3em;
+    text-transform: uppercase;
+    color: var(--gold);
+    opacity: 0.7;
+    margin-bottom: 0.6rem;
+  }
+
+  .modern-translation {
+    font-size: 1.05rem;
+    font-weight: 300;
+    line-height: 1.7;
+    color: rgba(245,237,214,0.88);
+    margin-bottom: 1.5rem;
+    padding-left: 1rem;
+    border-left: 2px solid rgba(184,134,11,0.35);
+  }
+
+  .context-box {
+    background: rgba(184,134,11,0.06);
+    border-radius: 2px;
+    padding: 1.25rem 1.25rem 1.25rem 1rem;
+    border-left: 3px solid rgba(139,58,15,0.5);
+  }
+
+  .context-text {
+    font-size: 0.9rem;
+    font-weight: 300;
+    line-height: 1.7;
+    color: rgba(245,237,214,0.65);
+    font-style: italic;
+  }
+
+  /* Controls */
+  .controls {
+    display: flex;
+    gap: 1rem;
+    margin-bottom: 2rem;
+    flex-wrap: wrap;
+    animation: fadeUp 0.8s 0.2s ease forwards;
+    opacity: 0;
+    transform: translateY(20px);
+  }
+
+  .btn {
+    flex: 1;
+    min-width: 140px;
+    padding: 0.85rem 1.5rem;
+    font-family: 'Crimson Pro', serif;
+    font-size: 0.85rem;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    border: 1px solid rgba(184,134,11,0.4);
+    background: transparent;
+    color: var(--parchment);
+    cursor: pointer;
+    border-radius: 1px;
+    transition: all 0.25s ease;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .btn::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: rgba(184,134,11,0.1);
+    transform: scaleX(0);
+    transform-origin: left;
+    transition: transform 0.3s ease;
+  }
+
+  .btn:hover::before { transform: scaleX(1); }
+  .btn:hover { border-color: var(--gold); color: var(--gold-light); }
+
+  .btn-primary {
+    background: rgba(184,134,11,0.15);
+    border-color: var(--gold);
+    color: var(--gold-light);
+  }
+  .btn-primary:hover { background: rgba(184,134,11,0.25); }
+
+  /* Notification status */
+  .status-bar {
+    text-align: center;
+    padding: 1rem;
+    font-size: 0.8rem;
+    font-weight: 300;
+    letter-spacing: 0.1em;
+    border: 1px solid rgba(184,134,11,0.15);
+    border-radius: 1px;
+    margin-bottom: 2rem;
+    animation: fadeUp 0.8s 0.4s ease forwards;
+    opacity: 0;
+    transform: translateY(20px);
+  }
+
+  .status-bar.active {
+    border-color: rgba(74,94,58,0.5);
+    background: rgba(74,94,58,0.08);
+    color: #8ab87a;
+  }
+
+  .status-bar.inactive {
+    color: rgba(245,237,214,0.4);
+  }
+
+  .status-bar.error {
+    border-color: rgba(139,58,15,0.5);
+    background: rgba(139,58,15,0.08);
+    color: #d4875a;
+  }
+
+  /* People list */
+  .voices-section {
+    animation: fadeUp 0.8s 0.5s ease forwards;
+    opacity: 0;
+    transform: translateY(20px);
+  }
+
+  .voices-label {
+    font-size: 0.65rem;
+    letter-spacing: 0.35em;
+    text-transform: uppercase;
+    color: var(--gold);
+    opacity: 0.6;
+    margin-bottom: 1rem;
+  }
+
+  .voices-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+  }
+
+  .voice-chip {
+    font-size: 0.78rem;
+    font-weight: 300;
+    padding: 0.3rem 0.8rem;
+    border: 1px solid rgba(184,134,11,0.2);
+    border-radius: 20px;
+    color: rgba(245,237,214,0.55);
+    letter-spacing: 0.05em;
+  }
+
+  /* Install banner */
+  .install-banner {
+    display: none;
+    background: rgba(184,134,11,0.1);
+    border: 1px solid rgba(184,134,11,0.3);
+    border-radius: 2px;
+    padding: 1rem 1.25rem;
+    margin-bottom: 1.5rem;
+    font-size: 0.85rem;
+    font-weight: 300;
+    line-height: 1.6;
+    color: rgba(245,237,214,0.7);
+    animation: fadeUp 0.8s ease forwards;
+  }
+
+  .install-banner.show { display: block; }
+  .install-banner strong { color: var(--gold-light); }
+
+  footer {
+    text-align: center;
+    margin-top: 3rem;
+    font-size: 0.7rem;
+    letter-spacing: 0.2em;
+    color: rgba(245,237,214,0.2);
+    text-transform: uppercase;
+  }
+</style>
+</head>
+<body>
+
+<div class="container">
+  <header>
+    <div class="app-label">Daily Wisdom · 7 AM Pacific</div>
+    <h1>Founding <em>Wisdom</em></h1>
+    <p class="subtitle">Words from history — made relevant for today</p>
+  </header>
+
+  <div id="installBanner" class="install-banner">
+    <strong>📱 To receive daily notifications:</strong> tap the Share button in your browser, then choose <strong>"Add to Home Screen"</strong>. Then open the app from your home screen and enable notifications.
+  </div>
+
+  <div id="statusBar" class="status-bar inactive">
+    ○ &nbsp;Notifications not enabled
+  </div>
+
+  <div class="controls">
+    <button class="btn btn-primary" id="btnEnable">Enable Daily Notifications</button>
+    <button class="btn" id="btnNew">New Quote</button>
+    <button class="btn" id="btnPreview">Preview Notification</button>
+  </div>
+
+  <div class="quote-card" id="quoteCard">
+    <div class="author-tag" id="authorTag">Loading...</div>
+    <div class="original-quote" id="originalQuote"></div>
+    <div class="quote-date" id="quoteDate"></div>
+
+    <div class="divider"><span>Modern Translation</span></div>
+    <p class="section-label">What they were saying</p>
+    <div class="modern-translation" id="modernTranslation"></div>
+
+    <div class="context-box">
+      <p class="section-label">Historical Context</p>
+      <p class="context-text" id="contextText"></p>
+    </div>
+  </div>
+
+  <div class="voices-section">
+    <div class="voices-label">Voices in this collection</div>
+    <div class="voices-list">
+      <span class="voice-chip">Abraham Lincoln</span>
+      <span class="voice-chip">Thomas Paine</span>
+      <span class="voice-chip">Samuel Adams</span>
+      <span class="voice-chip">Mercy Otis Warren</span>
+      <span class="voice-chip">William Lloyd Garrison</span>
+    </div>
+  </div>
+
+  <footer>Founding Wisdom &nbsp;·&nbsp; Daily at 7 AM PST</footer>
+</div>
+
+<script>
+const QUOTES = [
+  {
+    author: "Abraham Lincoln",
+    quote: "Give me six hours to chop down a tree and I will spend the first four sharpening the axe.",
+    date: "c. 1840s",
+    modern: "Preparation beats rushing in. If you invest most of your time getting ready — sharpening your skills, planning, thinking — the actual work becomes far easier and more effective.",
+    context: "Lincoln was largely self-educated and known for meticulous preparation in law and politics. Though this quote's exact origin is debated, it captures his deep belief that thoughtful groundwork was the real key to any success."
+  },
+  {
+    author: "Abraham Lincoln",
+    quote: "Whatever you are, be a good one.",
+    date: "c. 1858",
+    modern: "Whatever path you choose in life — tradesperson, parent, artist, leader — pursue it with genuine excellence and integrity rather than half-heartedly.",
+    context: "Lincoln said this during an era of rapid industrialization when many Americans were questioning their place in a changing economy. He consistently emphasized character over status."
+  },
+  {
+    author: "Abraham Lincoln",
+    quote: "Nearly all men can stand adversity, but if you want to test a man's character, give him power.",
+    date: "c. 1860",
+    modern: "Hardship reveals endurance, but power reveals who someone truly is. The real test of character isn't how you handle struggle — it's what you do when nobody can stop you.",
+    context: "Lincoln observed this as he navigated a fractious cabinet, a divided nation, and generals who often defied him. He himself was frequently described as unusually humble and principled despite wielding enormous wartime authority."
+  },
+  {
+    author: "Thomas Paine",
+    quote: "These are the times that try men's souls.",
+    date: "December 1776",
+    modern: "We are living through a moment that will define us — a crisis that separates those who are truly committed from those who only showed up when things were easy.",
+    context: "Paine wrote this in 'The American Crisis' as Washington's army was retreating across New Jersey, demoralized and dwindling. Washington actually had it read aloud to troops before the pivotal crossing of the Delaware River on Christmas night, 1776."
+  },
+  {
+    author: "Thomas Paine",
+    quote: "The mind, once enlightened, cannot again become dark.",
+    date: "1782",
+    modern: "Once you truly understand something — once you've genuinely seen the truth — you can't just choose to un-know it. Knowledge changes you permanently.",
+    context: "Paine wrote this in 'A Letter Addressed to the Abbé Raynal,' arguing that the American Revolution had unleashed ideas about liberty and human rights that could never be suppressed again, even by the most powerful governments."
+  },
+  {
+    author: "Thomas Paine",
+    quote: "Reputation is what men and women think of us; character is what God and angels know of us.",
+    date: "c. 1794",
+    modern: "Your reputation is just other people's opinion of you — it can be manufactured or destroyed by rumor. Your character is who you actually are when no one's watching. Focus on the second one.",
+    context: "Paine wrote this during a period when he was widely vilified in America after publishing 'The Age of Reason,' a deist critique of organized religion. He had gone from celebrated revolutionary to social outcast, and was reflecting on the gap between public perception and private integrity."
+  },
+  {
+    author: "Samuel Adams",
+    quote: "It does not take a majority to prevail... but rather an irate, tireless minority, keen on setting brushfires of freedom in the minds of men.",
+    date: "c. 1772",
+    modern: "You don't need everyone on your side to create change. A small, deeply committed group that refuses to quit can shift how whole societies think — one conversation, one article, one bold act at a time.",
+    context: "Adams wrote this as a key organizer of the Sons of Liberty and the Committees of Correspondence — colonial communication networks he built to spread revolutionary ideas. He understood that political transformation begins with changing minds before it changes laws."
+  },
+  {
+    author: "Samuel Adams",
+    quote: "If ye love wealth better than liberty, the tranquility of servitude better than the animating contest of freedom, go home from us in peace.",
+    date: "August 1, 1776",
+    modern: "If you'd rather be comfortable and controlled than free and responsible, that's your choice — but own it. Don't stand among people fighting for self-determination if you'd secretly prefer someone else to make your decisions.",
+    context: "Adams delivered this speech at the State House in Philadelphia just weeks after the Declaration of Independence was signed. It was a direct challenge to colonists who were waffling on independence because they feared economic disruption or British retaliation."
+  },
+  {
+    author: "Samuel Adams",
+    quote: "The liberties of our country, the freedom of our civil Constitution, are worth defending at all hazards.",
+    date: "1771",
+    modern: "The freedoms written into our laws aren't just nice to have — they're worth real sacrifice to protect. Complacency is how rights disappear.",
+    context: "Adams wrote this in the Boston Gazette during a period of escalating tension between the colonies and Britain over taxation and representation. He was trying to wake up colonists who had become passive in the face of creeping authoritarian policies."
+  },
+  {
+    author: "Mercy Otis Warren",
+    quote: "The origin of all power is in the people, and they have an incontestable right to check the creatures of their own creation.",
+    date: "1788",
+    modern: "All government power ultimately comes from ordinary citizens — and that means citizens have every right to criticize, challenge, and hold accountable the officials they've put in power. Leaders work for us, not the other way around.",
+    context: "Warren wrote this in her anti-Federalist pamphlet 'Observations on the New Constitution,' arguing against ratifying the proposed U.S. Constitution without a Bill of Rights. She feared a strong central government could become tyrannical — a view that ultimately led to the first ten amendments."
+  },
+  {
+    author: "Mercy Otis Warren",
+    quote: "It is necessary for every American, with becoming energy, to endeavor to stop the dissemination of principles evidently injurious to the peace and good order of society.",
+    date: "1805",
+    modern: "Every citizen has a responsibility to actively push back against ideas that undermine the fabric of a just society. Silence isn't neutrality — it's permission.",
+    context: "Warren wrote this in her landmark three-volume 'History of the Rise, Progress and Termination of the American Revolution' — one of the first major historical accounts of the Revolution written by an American. As a woman in an era when women rarely published under their own names, she understood that civic courage was everyone's duty."
+  },
+  {
+    author: "Mercy Otis Warren",
+    quote: "Patriotism may be the last refuge of the scoundrel, but it is the first duty of the honest citizen.",
+    date: "c. 1790s",
+    modern: "Yes, politicians and fraudsters abuse the word 'patriotism' to manipulate people — but that's all the more reason for genuinely principled people to demonstrate what real love of country actually looks like through action.",
+    context: "Warren was deeply skeptical of those who wrapped themselves in patriotic language while pursuing personal gain — she had watched it happen throughout the Revolution. She believed authentic civic devotion was proven through sacrifice and honesty, not rhetoric."
+  },
+  {
+    author: "William Lloyd Garrison",
+    quote: "I am in earnest — I will not equivocate — I will not excuse — I will not retreat a single inch — and I will be heard.",
+    date: "January 1, 1831",
+    modern: "I'm not bluffing, I'm not softening my message for comfort, I'm not walking anything back — and I refuse to be ignored. This matters too much for politeness.",
+    context: "These were the opening words of the very first issue of 'The Liberator,' Garrison's abolitionist newspaper published out of Boston. He was 25 years old, had no money, and was widely dismissed — but The Liberator ran for 35 years until slavery was abolished. It became one of the most influential publications in American history."
+  },
+  {
+    author: "William Lloyd Garrison",
+    quote: "With reasonable men, I will reason; with humane men I will plead; but to tyrants I will give no quarter, nor waste arguments where they will certainly be lost.",
+    date: "c. 1835",
+    modern: "I'll debate thoughtfully with people who are genuinely open to reason. I'll appeal to the conscience of those who have empathy. But I won't waste my energy trying to politely convince someone who is deliberately, knowingly causing harm.",
+    context: "Garrison said this as he was facing escalating violence from pro-slavery mobs — including being dragged through the streets of Boston by a rope in 1835. He was developing a strategic philosophy about when dialogue works and when a moral stand must be unconditional."
+  },
+  {
+    author: "William Lloyd Garrison",
+    quote: "Wherever there is a human being, I see God-given rights inherent in that being, whatever may be the sex or complexion.",
+    date: "c. 1838",
+    modern: "Every single person — regardless of gender, race, or background — is born with fundamental rights that no law, culture, or tradition can legitimately take away.",
+    context: "Garrison said this at a time when he was expanding his activism beyond abolition to explicitly include women's rights — a controversial move that alienated some of his abolitionist allies. He was one of the few male public figures of his era to speak at women's rights conventions and argue unambiguously for gender equality."
+  }
+];
+
+// ─── State ───────────────────────────────────────────────────
+let currentIndex = getDailyIndex();
+let notificationsEnabled = false;
+let swRegistration = null;
+
+function getDailyIndex() {
+  const day = Math.floor(Date.now() / 86400000);
+  return day % QUOTES.length;
+}
+
+function getQuoteForDay() {
+  return QUOTES[getDailyIndex()];
+}
+
+// ─── Render ───────────────────────────────────────────────────
+function renderQuote(q) {
+  document.getElementById('authorTag').textContent = q.author;
+  document.getElementById('originalQuote').textContent = `"${q.quote}"`;
+  document.getElementById('quoteDate').textContent = q.date;
+  document.getElementById('modernTranslation').textContent = q.modern;
+  document.getElementById('contextText').textContent = q.context;
+
+  // Re-trigger animation
+  const card = document.getElementById('quoteCard');
+  card.style.animation = 'none';
+  card.offsetHeight; // reflow
+  card.style.animation = '';
+}
+
+function showRandomQuote() {
+  let next;
+  do { next = Math.floor(Math.random() * QUOTES.length); } while (next === currentIndex);
+  currentIndex = next;
+  renderQuote(QUOTES[currentIndex]);
+}
+
+// ─── Notifications ───────────────────────────────────────────
+function updateStatus(state, msg) {
+  const bar = document.getElementById('statusBar');
+  bar.className = `status-bar ${state}`;
+  bar.textContent = state === 'active' ? `● ${msg}` : `○ ${msg}`;
+}
+
+async function registerSW() {
+  if (!('serviceWorker' in navigator)) return null;
+  try {
+    const reg = await navigator.serviceWorker.register('./service-worker.js');
+    return reg;
+  } catch(e) {
+    console.error('SW registration failed:', e);
+    return null;
+  }
+}
+
+async function enableNotifications() {
+  if (!('Notification' in window)) {
+    updateStatus('error', 'This browser does not support notifications');
+    return;
+  }
+
+  const perm = await Notification.requestPermission();
+  if (perm !== 'granted') {
+    updateStatus('error', 'Notification permission denied — please allow it in browser settings');
+    return;
+  }
+
+  swRegistration = await registerSW();
+  if (!swRegistration) {
+    updateStatus('error', 'Service Worker not supported — try adding app to home screen');
+    return;
+  }
+
+  notificationsEnabled = true;
+  localStorage.setItem('notifs_enabled', '1');
+  scheduleNextNotification();
+  updateStatus('active', 'Daily notifications enabled — 7 AM Pacific every day');
+}
+
+function getNextSevenAMPST() {
+  const now = new Date();
+  // PST = UTC-8, PDT = UTC-7 (approx via standard offset)
+  const offsetHours = isPDT(now) ? -7 : -8;
+  const utcMs = now.getTime() + now.getTimezoneOffset() * 60000;
+  const pstMs = utcMs + offsetHours * 3600000;
+  const pstNow = new Date(pstMs);
+
+  let target = new Date(pstMs);
+  target.setHours(7, 0, 0, 0);
+  if (pstNow.getHours() >= 7) {
+    target.setDate(target.getDate() + 1);
+  }
+
+  // Convert back to local ms
+  const targetLocalMs = target.getTime() - offsetHours * 3600000 - now.getTimezoneOffset() * 60000;
+  return targetLocalMs - Date.now();
+}
+
+function isPDT(date) {
+  // PDT: 2nd Sunday March → 1st Sunday November
+  const year = date.getFullYear();
+  const start = getNthSunday(year, 2, 2); // 2nd Sunday of March (month 2 = March, 0-indexed)
+  const end = getNthSunday(year, 10, 1);  // 1st Sunday of November
+  return date >= start && date < end;
+}
+
+function getNthSunday(year, month, n) {
+  const d = new Date(year, month, 1);
+  const firstSunday = (7 - d.getDay()) % 7;
+  d.setDate(firstSunday + (n - 1) * 7 + 1);
+  return d;
+}
+
+function scheduleNextNotification() {
+  const msUntil = getNextSevenAMPST();
+  const hours = Math.round(msUntil / 3600000);
+  console.log(`Next notification in ~${hours} hours`);
+
+  setTimeout(() => {
+    sendNotification();
+    scheduleNextNotification(); // reschedule daily
+  }, msUntil);
+}
+
+function sendNotification() {
+  const q = getQuoteForDay();
+  if (!swRegistration || !swRegistration.active) return;
+  swRegistration.active.postMessage({
+    type: 'SHOW_NOTIFICATION',
+    title: `${q.author}`,
+    body: `"${q.quote.substring(0, 100)}${q.quote.length > 100 ? '…' : ''}" — Open app for modern translation & context.`
+  });
+}
+
+function previewNotification() {
+  const q = QUOTES[currentIndex];
+  if (!notificationsEnabled) {
+    alert('Please enable notifications first, then try preview again.');
+    return;
+  }
+  if (swRegistration && swRegistration.active) {
+    swRegistration.active.postMessage({
+      type: 'SHOW_NOTIFICATION',
+      title: `${q.author}`,
+      body: `"${q.quote.substring(0, 100)}${q.quote.length > 100 ? '…' : ''}" — Open for full context.`
+    });
+  }
+}
+
+// ─── iOS install prompt ────────────────────────────────────────
+function checkInstallPrompt() {
+  const isIOS = /iphone|ipad|ipod/i.test(navigator.userAgent);
+  const isStandalone = window.navigator.standalone === true;
+  if (isIOS && !isStandalone) {
+    document.getElementById('installBanner').classList.add('show');
+  }
+}
+
+// ─── Init ─────────────────────────────────────────────────────
+async function init() {
+  renderQuote(QUOTES[currentIndex]);
+  checkInstallPrompt();
+
+  // Restore state
+  if (localStorage.getItem('notifs_enabled') === '1' && Notification.permission === 'granted') {
+    swRegistration = await registerSW();
+    if (swRegistration) {
+      notificationsEnabled = true;
+      scheduleNextNotification();
+      updateStatus('active', 'Daily notifications enabled — 7 AM Pacific every day');
+    }
+  }
+
+  document.getElementById('btnEnable').addEventListener('click', enableNotifications);
+  document.getElementById('btnNew').addEventListener('click', showRandomQuote);
+  document.getElementById('btnPreview').addEventListener('click', previewNotification);
+}
+
+init();
+</script>
+</body>
+</html>
