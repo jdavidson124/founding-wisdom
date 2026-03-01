@@ -583,11 +583,11 @@ body {
   <div class="voices-section">
     <div class="voices-label">Contributors to this Gazette</div>
     <div class="voices-list">
-      <span class="voice-chip">Abraham Lincoln</span>
+      <span class="voice-chip">John Adams</span>
       <span class="voice-chip">Thomas Paine</span>
       <span class="voice-chip">Samuel Adams</span>
       <span class="voice-chip">Mercy Otis Warren</span>
-      <span class="voice-chip">William Lloyd Garrison</span>
+      <span class="voice-chip">Abigail Adams</span>
     </div>
   </div>
 
@@ -599,16 +599,16 @@ body {
 <script>
 function buildSystemPrompt(personIndex) {
   const people = [
-    "Abraham Lincoln",
+    "John Adams",
     "Thomas Paine",
     "Samuel Adams",
     "Mercy Otis Warren",
-    "William Lloyd Garrison"
+    "Abigail Adams"
   ];
   const assigned = people[personIndex];
   return `You are a historian and plain-language educator. You MUST select a real, historically verified quote from this specific person: ${assigned}. Do not choose anyone else — only ${assigned}.
 
-Pick a meaningful but lesser-known quote — not the most famous one everyone already knows.
+Pick a meaningful but lesser-known quote — not the most famous one everyone already knows. These are all figures from 18th century Boston and colonial America, so lean into that world.
 
 Respond ONLY with a valid JSON object, no markdown, no backticks, no explanation:
 {
@@ -631,7 +631,7 @@ const getCache  = () => { try { return JSON.parse(localStorage.getItem(todayKey(
 const setCache  = q  => localStorage.setItem(todayKey(), JSON.stringify(q));
 
 // Deterministic person rotation: 1 person per day, cycles through all 5
-const PEOPLE = ["Abraham Lincoln","Thomas Paine","Samuel Adams","Mercy Otis Warren","William Lloyd Garrison"];
+const PEOPLE = ["John Adams","Thomas Paine","Samuel Adams","Mercy Otis Warren","Abigail Adams"];
 function getTodayPersonIndex() { return Math.floor(Date.now() / 86400000) % 5; }
 function getRandomPersonIndex(exclude) { let i; do { i = Math.floor(Math.random()*5); } while(i===exclude); return i; }
 
@@ -688,7 +688,7 @@ async function fetchQuote(forceNew = false, personOverride = null) {
 }
 
 // ─── UI helpers ───────────────────────────────────────────────
-const AUTHOR_DATES = {"Abraham Lincoln": "1809–1865", "Thomas Paine": "1737–1809", "Samuel Adams": "1722–1803", "Mercy Otis Warren": "1728–1814", "William Lloyd Garrison": "1805–1879"};
+const AUTHOR_DATES = {"John Adams": "1735–1826", "Thomas Paine": "1737–1809", "Samuel Adams": "1722–1803", "Mercy Otis Warren": "1728–1814", "Abigail Adams": "1744–1818"};
 
 function renderQuote(q) {
   document.getElementById('loadingState').style.display = 'none';
