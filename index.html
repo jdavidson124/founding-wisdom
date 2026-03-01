@@ -764,7 +764,8 @@ async function enableNotifications() {
   swReg = await registerSW();
   if (!swReg) { updateStatus('error', 'Service Worker not supported — try adding app to home screen first'); return; }
   localStorage.setItem('fw_notifs', '1');
-  scheduleNext();
+  scheduleNext();             // pre-fetch alarm at 10 PM
+  scheduleNextNotification(); // notification alarm at 7 AM
   updateStatus('active', 'Daily notifications enabled — 7 AM Pacific every day');
 }
 
@@ -791,14 +792,40 @@ function msUntilSevenAMPST() {
   return Math.max(targetLocal - Date.now(), 5000);
 }
 
+function msUntilHourPST(hour) {
+  const now = new Date();
+  const off = isPDT(now) ? -7 : -8;
+  const utc = now.getTime() + now.getTimezoneOffset() * 60000;
+  const pst = utc + off * 3600000;
+  const pstNow = new Date(pst);
+  const target = new Date(pst);
+  target.setHours(hour, 0, 0, 0);
+  if (pstNow.getHours() >= hour) target.setDate(target.getDate() + 1);
+  const targetLocal = target.getTime() - off * 3600000 - now.getTimezoneOffset() * 60000;
+  return Math.max(targetLocal - Date.now(), 5000);
+}
+
 function scheduleNext() {
-  const ms = msUntilSevenAMPST();
-  console.log(`Next quote notification in ~${Math.round(ms / 3600000)}h`);
+  // ALARM 1: Pre-fetch at 10 PM PST the night before
+  // This silently fetches and caches tomorrow's quote
+  const msPrefetch = msUntilHourPST(22);
+  console.log(`Pre-fetch scheduled in ~${Math.round(msPrefetch / 3600000)}h`);
   setTimeout(async () => {
-    await fetchQuote(true); // Force fresh quote for the new day
+    console.log("Pre-fetching tomorrow's quote at 10 PM...");
+    await fetchQuote(true); // fetch & cache silently, no notification
+    scheduleNextNotification();
+    scheduleNext(); // reschedule for next night
+  }, msPrefetch);
+}
+
+function scheduleNextNotification() {
+  // ALARM 2: Fire notification at 7 AM from cache — instant, no API call
+  const ms7am = msUntilHourPST(7);
+  console.log(`Notification scheduled in ~${Math.round(ms7am / 3600000)}h`);
+  setTimeout(() => {
+    console.log("Firing 7 AM notification from cache...");
     sendNotification();
-    scheduleNext();
-  }, ms);
+  }, ms7am);
 }
 
 function sendNotification() {
@@ -833,7 +860,8 @@ async function init() {
   if (localStorage.getItem('fw_notifs') === '1' && Notification.permission === 'granted') {
     swReg = await registerSW();
     if (swReg) {
-      scheduleNext();
+      scheduleNext();        // pre-fetch alarm at 10 PM
+      scheduleNextNotification(); // notification alarm at 7 AM
       updateStatus('active', 'Daily notifications enabled — 7 AM Pacific every day');
     }
   }
