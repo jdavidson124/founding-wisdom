@@ -1,24 +1,30 @@
-// api/quote.js
-// Returns today's cached quote (fetched by the cron job)
-// Falls back to fetching a new one if not yet cached
-
-import { kv } from '@vercel/kv';
+// api/quote.js — returns today's cached quote from Upstash
 
 export default async function handler(req, res) {
   res.setHeader('Access-Control-Allow-Origin', '*');
-
   try {
-    const cachedDate = await kv.get('todays_quote_date');
-    const today = new Date().toDateString();
-
-    if (cachedDate === today) {
-      const quote = await kv.get('todays_quote');
-      const parsed = typeof quote === 'string' ? JSON.parse(quote) : quote;
-      return res.status(200).json({ quote: parsed, source: 'cache' });
+    const cachedDate = await upstash('GET', 'todays_quote_date');
+    if (cachedDate === new Date().toDateString()) {
+      const raw = await upstash('GET', 'todays_quote');
+      const quote = typeof raw === 'string' ? JSON.parse(raw) : raw;
+      return res.status(200).json({ quote, source: 'cache' });
     }
-
     return res.status(404).json({ error: 'No quote yet today — cron runs at 7 AM PST' });
   } catch (err) {
     return res.status(500).json({ error: err.message });
   }
+}
+
+async function upstash(command, ...args) {
+  const res = await fetch(process.env.UPSTASH_REDIS_REST_URL, {
+    method: 'POST',
+    headers: {
+      Authorization: `Bearer ${process.env.UPSTASH_REDIS_REST_TOKEN}`,
+      'Content-Type': 'application/json'
+    },
+    body: JSON.stringify([command, ...args])
+  });
+  const data = await res.json();
+  if (data.error) throw new Error(data.error);
+  return data.result;
 }
