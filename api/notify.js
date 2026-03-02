@@ -21,10 +21,10 @@ Respond ONLY with a valid JSON object, no markdown, no backticks, no explanation
 
 // Upstash REST helpers — no SDK needed
 async function upstash(command, ...args) {
-  const res = await fetch(process.env.UPSTASH_REDIS_REST_URL, {
+  const res = await fetch(process.env.KV_REST_API_URL, {
     method: 'POST',
     headers: {
-      Authorization: `Bearer ${process.env.UPSTASH_REDIS_REST_TOKEN}`,
+      Authorization: `Bearer ${process.env.KV_REST_API_TOKEN}`,
       'Content-Type': 'application/json'
     },
     body: JSON.stringify([command, ...args])
