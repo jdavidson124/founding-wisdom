@@ -25,8 +25,8 @@ export default async function handler(req, res) {
 
 // Lightweight Upstash REST helpers — no SDK needed
 async function upstashRequest(command, ...args) {
-  const url = process.env.UPSTASH_REDIS_REST_URL;
-  const token = process.env.UPSTASH_REDIS_REST_TOKEN;
+  const url = process.env.KV_REST_API_URL;
+  const token = process.env.KV_REST_API_TOKEN;
   const res = await fetch(`${url}`, {
     method: 'POST',
     headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
