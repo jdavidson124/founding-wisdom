@@ -16,10 +16,10 @@ export default async function handler(req, res) {
 }
 
 async function upstash(command, ...args) {
-  const res = await fetch(process.env.UPSTASH_REDIS_REST_URL, {
+  const res = await fetch(process.env.KV_REST_API_URL, {
     method: 'POST',
     headers: {
-      Authorization: `Bearer ${process.env.UPSTASH_REDIS_REST_TOKEN}`,
+      Authorization: `Bearer ${process.env.KV_REST_API_TOKEN}`,
       'Content-Type': 'application/json'
     },
     body: JSON.stringify([command, ...args])
