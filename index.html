@@ -719,33 +719,54 @@ async function registerSW() {
 }
 
 async function enableNotifications() {
-  if (!('Notification' in window)) { updateStatus('error', 'Browser does not support notifications'); return; }
+  if (!('Notification' in window) || !('serviceWorker' in navigator) || !('PushManager' in window)) {
+    updateStatus('error', 'Push notifications not supported — make sure you have added this app to your Home Screen first');
+    return;
+  }
 
+  // Step 1: Register SW and wait until it is fully active
+  updateStatus('inactive', '○  Activating service worker...');
+  swReg = await registerSW();
+  if (!swReg) { updateStatus('error', 'Service Worker failed to register'); return; }
+
+  // Wait for SW to become active (handles installing → waiting → active)
+  await new Promise((resolve, reject) => {
+    if (swReg.active) { resolve(); return; }
+    const sw = swReg.installing || swReg.waiting;
+    if (!sw) { reject(new Error('No service worker found')); return; }
+    sw.addEventListener('statechange', function handler() {
+      if (sw.state === 'activated') { sw.removeEventListener('statechange', handler); resolve(); }
+      if (sw.state === 'redundant') { sw.removeEventListener('statechange', handler); reject(new Error('SW became redundant')); }
+    });
+  }).catch(err => { updateStatus('error', 'Service worker error: ' + err.message); throw err; });
+
+  // Step 2: Request notification permission
   const perm = await Notification.requestPermission();
   if (perm !== 'granted') { updateStatus('error', 'Permission denied — allow notifications in browser settings'); return; }
 
-  swReg = await registerSW();
-  if (!swReg) { updateStatus('error', 'Service Worker not supported — try adding app to home screen first'); return; }
-
+  // Step 3: Subscribe to push
   try {
-    // Subscribe to push using VAPID public key
-    const subscription = await swReg.pushManager.subscribe({
-      userVisibleOnly: true,
-      applicationServerKey: urlBase64ToUint8Array(VAPID_PUBLIC_KEY)
-    });
+    // Check for existing subscription first
+    let subscription = await swReg.pushManager.getSubscription();
+    if (!subscription) {
+      subscription = await swReg.pushManager.subscribe({
+        userVisibleOnly: true,
+        applicationServerKey: urlBase64ToUint8Array(VAPID_PUBLIC_KEY)
+      });
+    }
 
-    // Send subscription to our server
+    // Send subscription to server
     const res = await fetch('/api/subscribe', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(subscription)
     });
 
-    if (!res.ok) throw new Error('Failed to save subscription on server');
+    if (!res.ok) throw new Error('Server could not save subscription (status ' + res.status + ')');
 
     localStorage.setItem('fw_notifs', '1');
     updateStatus('active', 'Daily dispatch enabled — 7 AM Pacific every morning');
-    console.log('Push subscription saved to server.');
+    console.log('Push subscription registered successfully.');
   } catch(err) {
     console.error('Push subscription error:', err);
     updateStatus('error', 'Could not enable push: ' + err.message);
