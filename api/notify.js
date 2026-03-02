@@ -1,17 +1,10 @@
 // api/notify.js
-// Runs daily at 7 AM PST via Vercel cron (schedule: "0 15 * * *" = 15:00 UTC = 7 AM PST)
-// Fetches a fresh quote from Claude API and pushes it to all subscribed devices
+// Runs daily at 7 AM PST via Vercel cron (0 15 * * *)
+// Fetches quote from Claude, sends push notification to all subscribers
 
 import webpush from 'web-push';
-import { kv } from '@vercel/kv';
 
-const PEOPLE = [
-  "John Adams",
-  "Thomas Paine",
-  "Samuel Adams",
-  "Mercy Otis Warren",
-  "Abigail Adams"
-];
+const PEOPLE = ["John Adams","Thomas Paine","Samuel Adams","Mercy Otis Warren","Abigail Adams"];
 
 const SYSTEM_PROMPT = `You are a historian and plain-language educator. You will be told which specific person to quote. Select a real, historically verified quote from that person only.
 
@@ -26,11 +19,23 @@ Respond ONLY with a valid JSON object, no markdown, no backticks, no explanation
   "context": "2 to 3 sentences of historical context: what was happening at the time, why they said it, why it mattered"
 }`;
 
-async function fetchQuote() {
-  // Pick person based on day of year for consistent rotation
-  const dayOfYear = Math.floor(Date.now() / 86400000);
-  const person = PEOPLE[dayOfYear % PEOPLE.length];
+// Upstash REST helpers — no SDK needed
+async function upstash(command, ...args) {
+  const res = await fetch(process.env.UPSTASH_REDIS_REST_URL, {
+    method: 'POST',
+    headers: {
+      Authorization: `Bearer ${process.env.UPSTASH_REDIS_REST_TOKEN}`,
+      'Content-Type': 'application/json'
+    },
+    body: JSON.stringify([command, ...args])
+  });
+  const data = await res.json();
+  if (data.error) throw new Error(`Upstash: ${data.error}`);
+  return data.result;
+}
 
+async function fetchQuote() {
+  const person = PEOPLE[Math.floor(Date.now() / 86400000) % PEOPLE.length];
   const res = await fetch('https://api.anthropic.com/v1/messages', {
     method: 'POST',
     headers: {
@@ -42,13 +47,9 @@ async function fetchQuote() {
       model: 'claude-sonnet-4-20250514',
       max_tokens: 1000,
       system: SYSTEM_PROMPT,
-      messages: [{
-        role: 'user',
-        content: `Give me a real, historically verified quote from ${person}. Choose one that is meaningful but not their most famous — something that reveals their character or thinking in a fresh way.`
-      }]
+      messages: [{ role: 'user', content: `Give me a real, historically verified quote from ${person}. Not their most famous — something meaningful and lesser-known.` }]
     })
   });
-
   if (!res.ok) throw new Error(`Claude API error: ${res.status}`);
   const data = await res.json();
   const raw = data.content.map(b => b.text || '').join('').replace(/```json|```/g, '').trim();
@@ -56,74 +57,53 @@ async function fetchQuote() {
 }
 
 export default async function handler(req, res) {
-  // Allow manual trigger via GET for testing, cron uses GET too
-  const authHeader = req.headers['authorization'];
-  const cronSecret = process.env.CRON_SECRET;
-
-  // Verify this is a legitimate cron call or manual trigger with secret
-  if (cronSecret && authHeader !== `Bearer ${cronSecret}`) {
-    // Vercel cron jobs send the CRON_SECRET automatically
-    // Also allow direct calls without secret in dev/testing
-    if (req.headers['x-vercel-cron'] !== '1' && authHeader !== `Bearer ${cronSecret}`) {
-      return res.status(401).json({ error: 'Unauthorized' });
-    }
-  }
+  const isVercelCron = req.headers['x-vercel-cron'] === '1';
+  const cronSecret   = process.env.CRON_SECRET;
+  const authorized   = isVercelCron || !cronSecret || req.headers['authorization'] === `Bearer ${cronSecret}`;
+  if (!authorized) return res.status(401).json({ error: 'Unauthorized' });
 
   try {
-    // Configure web-push with VAPID keys
     webpush.setVapidDetails(
       'mailto:noreply@american-gazette.app',
       process.env.VAPID_PUBLIC_KEY,
       process.env.VAPID_PRIVATE_KEY
     );
 
-    // Fetch today's quote from Claude
-    console.log('Fetching quote from Claude...');
     const quote = await fetchQuote();
-    console.log(`Got quote from ${quote.author}`);
+    console.log(`Quote fetched: ${quote.author}`);
 
-    // Store today's quote in KV so the app can retrieve it
-    await kv.set('todays_quote', JSON.stringify(quote));
-    await kv.set('todays_quote_date', new Date().toDateString());
+    await upstash('SET', 'todays_quote', JSON.stringify(quote));
+    await upstash('SET', 'todays_quote_date', new Date().toDateString());
 
-    // Get all subscriber keys
-    const subKeys = await kv.smembers('all_subscriptions');
-    console.log(`Sending to ${subKeys.length} subscribers`);
+    const subKeys = await upstash('SMEMBERS', 'all_subscriptions') || [];
+    console.log(`${subKeys.length} subscribers`);
 
-    const notifPayload = JSON.stringify({
+    const payload = JSON.stringify({
       title: `American Gazette · ${quote.author}`,
       body: `"${quote.quote.substring(0, 110)}${quote.quote.length > 110 ? '…' : ''}" — Tap to read.`,
       icon: '/icon-192.png',
-      badge: '/icon-192.png',
       tag: 'daily-quote',
       data: { quote }
     });
 
-    // Send to all subscribers, remove expired ones
-    const results = await Promise.allSettled(
-      subKeys.map(async (key) => {
-        const subStr = await kv.get(key);
-        if (!subStr) return;
-        const subscription = typeof subStr === 'string' ? JSON.parse(subStr) : subStr;
-        try {
-          await webpush.sendNotification(subscription, notifPayload);
-          console.log('Sent to:', key);
-        } catch (err) {
-          if (err.statusCode === 410 || err.statusCode === 404) {
-            // Subscription expired — remove it
-            await kv.del(key);
-            await kv.srem('all_subscriptions', key);
-            console.log('Removed expired subscription:', key);
-          } else {
-            throw err;
-          }
+    let sent = 0;
+    for (const key of subKeys) {
+      try {
+        const subStr = await upstash('GET', key);
+        if (!subStr) continue;
+        const sub = typeof subStr === 'string' ? JSON.parse(subStr) : subStr;
+        await webpush.sendNotification(sub, payload);
+        sent++;
+      } catch (err) {
+        if (err.statusCode === 410 || err.statusCode === 404) {
+          await upstash('DEL', key);
+          await upstash('SREM', 'all_subscriptions', key);
+          console.log('Removed expired sub:', key);
         }
-      })
-    );
+      }
+    }
 
-    const sent = results.filter(r => r.status === 'fulfilled').length;
     return res.status(200).json({ success: true, sent, author: quote.author });
-
   } catch (err) {
     console.error('Notify error:', err);
     return res.status(500).json({ error: err.message });
