@@ -1,0 +1,10 @@
+{
+  "name": "american-gazette",
+  "version": "1.0.0",
+  "description": "Daily quotes from 18th century Boston founders",
+  "type": "module",
+  "dependencies": {
+    "web-push": "^3.6.7",
+    "@vercel/kv": "^2.0.0"
+  }
+}
