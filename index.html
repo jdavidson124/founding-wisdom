@@ -597,18 +597,17 @@ body {
 </div>
 
 <script>
+const VAPID_PUBLIC_KEY = 'BHg9sljh8WfnfL-shlg8xvCC3NyAUAppx1G1dVpo7HAihBsd0FuISmehewgyh3DiACRdAZSXMXcxqR_GIKiSeAc';
+
+const PEOPLE = ["John Adams","Thomas Paine","Samuel Adams","Mercy Otis Warren","Abigail Adams"];
+const AUTHOR_DATES = {"John Adams": "1735–1826", "Thomas Paine": "1737–1809", "Samuel Adams": "1722–1803", "Mercy Otis Warren": "1728–1814", "Abigail Adams": "1744–1818"};
+
 function buildSystemPrompt(personIndex) {
-  const people = [
-    "John Adams",
-    "Thomas Paine",
-    "Samuel Adams",
-    "Mercy Otis Warren",
-    "Abigail Adams"
-  ];
+  const people = ["John Adams","Thomas Paine","Samuel Adams","Mercy Otis Warren","Abigail Adams"];
   const assigned = people[personIndex];
   return `You are a historian and plain-language educator. You MUST select a real, historically verified quote from this specific person: ${assigned}. Do not choose anyone else — only ${assigned}.
 
-Pick a meaningful but lesser-known quote — not the most famous one everyone already knows. These are all figures from 18th century Boston and colonial America, so lean into that world.
+Pick a meaningful but lesser-known quote — not the most famous one everyone already knows. These are all figures from 18th century Boston and colonial America.
 
 Respond ONLY with a valid JSON object, no markdown, no backticks, no explanation:
 {
@@ -620,18 +619,13 @@ Respond ONLY with a valid JSON object, no markdown, no backticks, no explanation
 }`;
 }
 
-// ─── Storage helpers ──────────────────────────────────────────
+// ─── Storage helpers ───────────────────────────────────────────
 const saveKey  = k  => localStorage.setItem('fw_api_key', k);
 const getKey   = () => localStorage.getItem('fw_api_key') || '';
-const todayKey = () => {
-  const d = new Date();
-  return `fw_quote_${d.getFullYear()}_${d.getMonth()}_${d.getDate()}`;
-};
+const todayKey = () => { const d = new Date(); return `fw_quote_${d.getFullYear()}_${d.getMonth()}_${d.getDate()}`; };
 const getCache  = () => { try { return JSON.parse(localStorage.getItem(todayKey())); } catch { return null; } };
 const setCache  = q  => localStorage.setItem(todayKey(), JSON.stringify(q));
 
-// Deterministic person rotation: 1 person per day, cycles through all 5
-const PEOPLE = ["John Adams","Thomas Paine","Samuel Adams","Mercy Otis Warren","Abigail Adams"];
 function getTodayPersonIndex() { return Math.floor(Date.now() / 86400000) % 5; }
 function getRandomPersonIndex(exclude) { let i; do { i = Math.floor(Math.random()*5); } while(i===exclude); return i; }
 
@@ -639,18 +633,10 @@ function getRandomPersonIndex(exclude) { let i; do { i = Math.floor(Math.random(
 async function fetchQuote(forceNew = false, personOverride = null) {
   const apiKey = getKey();
   if (!apiKey) { showSetup(); return; }
-
-  if (!forceNew) {
-    const cached = getCache();
-    if (cached) { renderQuote(cached); return; }
-  }
-
+  if (!forceNew) { const cached = getCache(); if (cached) { renderQuote(cached); return; } }
   showLoading();
-
-  // Pick person: use override (New Quote button), or today's deterministic pick
   const personIdx = personOverride !== null ? personOverride : getTodayPersonIndex();
   const person = PEOPLE[personIdx];
-
   try {
     const res = await fetch("https://api.anthropic.com/v1/messages", {
       method: "POST",
@@ -664,86 +650,61 @@ async function fetchQuote(forceNew = false, personOverride = null) {
         model: "claude-sonnet-4-20250514",
         max_tokens: 1000,
         system: buildSystemPrompt(personIdx),
-        messages: [{
-          role: "user",
-          content: `Give me a real, historically verified quote from ${person}. Choose one that is meaningful but not their most famous — something that reveals their character or thinking in a fresh way.`
-        }]
+        messages: [{ role: "user", content: `Give me a real, historically verified quote from ${person}. Choose one that is meaningful but not their most famous.` }]
       })
     });
-
-    if (!res.ok) {
-      const err = await res.json().catch(() => ({}));
-      throw new Error(err.error?.message || `API error ${res.status}`);
-    }
-
+    if (!res.ok) { const err = await res.json().catch(() => ({})); throw new Error(err.error?.message || `API error ${res.status}`); }
     const data = await res.json();
     const raw = data.content.map(b => b.text || '').join('').replace(/```json|```/g, '').trim();
     const quote = JSON.parse(raw);
-
     setCache(quote);
     renderQuote(quote);
-  } catch(err) {
-    showError(err.message);
-  }
+  } catch(err) { showError(err.message); }
 }
 
-// ─── UI helpers ───────────────────────────────────────────────
-const AUTHOR_DATES = {"John Adams": "1735–1826", "Thomas Paine": "1737–1809", "Samuel Adams": "1722–1803", "Mercy Otis Warren": "1728–1814", "Abigail Adams": "1744–1818"};
-
+// ─── Render ────────────────────────────────────────────────────
 function renderQuote(q) {
   document.getElementById('loadingState').style.display = 'none';
-  const content = document.getElementById('quoteContent');
-  content.style.display = 'block';
+  document.getElementById('quoteContent').style.display = 'block';
   document.getElementById('authorTag').textContent = q.author;
   document.getElementById('authorYears').textContent = AUTHOR_DATES[q.author] || '';
   document.getElementById('originalQuote').textContent = '\u201C' + q.quote + '\u201D';
   document.getElementById('quoteMeta').textContent = q.date;
   document.getElementById('modernTranslation').textContent = q.modern;
   document.getElementById('contextText').textContent = q.context;
-
-  // Set masthead date
   const now = new Date();
   const months = ['January','February','March','April','May','June','July','August','September','October','November','December'];
   document.getElementById('todayDateLeft').textContent = months[now.getMonth()] + ' ' + now.getDate() + ', ' + now.getFullYear();
-
   const card = document.getElementById('quoteCard');
-  card.style.animation = 'none';
-  card.offsetHeight;
-  card.style.animation = '';
+  card.style.animation = 'none'; card.offsetHeight; card.style.animation = '';
 }
 
 function showLoading() {
   document.getElementById('loadingState').style.display = 'block';
   document.getElementById('quoteContent').style.display = 'none';
-  document.getElementById('loadingState').innerHTML = `
-    <div class="quill-spinner">🪶</div>
-    <div class="loading-text">Consulting the founders...</div>
-    <div class="loading-subtext">Generating today's quote</div>
-  `;
+  document.getElementById('loadingState').innerHTML = `<div class="quill-spinner">🪶</div><div class="loading-text">Consulting the Founders...</div><div class="loading-subtext">Setting type &amp; composing today's dispatch</div>`;
 }
 
 function showError(msg) {
   document.getElementById('loadingState').style.display = 'block';
   document.getElementById('quoteContent').style.display = 'none';
-  document.getElementById('loadingState').innerHTML = `
-    <div style="font-size:1.5rem;margin-bottom:0.75rem">⚠️</div>
-    <div class="loading-text" style="color:#d4875a">Something went wrong</div>
-    <div class="loading-subtext" style="color:rgba(212,135,90,0.6);margin-bottom:1.5rem">${msg}</div>
-    <button class="btn" onclick="fetchQuote(true)" style="flex:none;margin:0 auto">Try Again</button>
-  `;
+  document.getElementById('loadingState').innerHTML = `<div style="font-size:1.5rem;margin-bottom:0.75rem">⚠️</div><div class="loading-text" style="color:var(--rust)">Something went wrong</div><div class="loading-subtext" style="margin-bottom:1.5rem">${msg}</div><button class="btn" onclick="fetchQuote(true)" style="flex:none;margin:0 auto">Try Again</button>`;
 }
 
 function showSetup() {
   document.getElementById('apiSetup').style.display = 'block';
-  document.getElementById('loadingState').innerHTML = `
-    <div style="font-size:1.5rem;margin-bottom:0.75rem">🗝</div>
-    <div class="loading-text">API key needed</div>
-    <div class="loading-subtext">Enter your Anthropic API key above to get started</div>
-  `;
+  document.getElementById('loadingState').innerHTML = `<div style="font-size:1.5rem;margin-bottom:0.75rem">🗝</div><div class="loading-text">API key needed</div><div class="loading-subtext">Enter your Anthropic API key above to get started</div>`;
 }
 
-// ─── Notifications ────────────────────────────────────────────
+// ─── VAPID Push Subscription ───────────────────────────────────
 let swReg = null;
+
+function urlBase64ToUint8Array(base64String) {
+  const padding = '='.repeat((4 - base64String.length % 4) % 4);
+  const base64 = (base64String + padding).replace(/-/g, '+').replace(/_/g, '/');
+  const rawData = atob(base64);
+  return new Uint8Array([...rawData].map(c => c.charCodeAt(0)));
+}
 
 function updateStatus(state, msg) {
   const bar = document.getElementById('statusBar');
@@ -759,122 +720,60 @@ async function registerSW() {
 
 async function enableNotifications() {
   if (!('Notification' in window)) { updateStatus('error', 'Browser does not support notifications'); return; }
+
   const perm = await Notification.requestPermission();
   if (perm !== 'granted') { updateStatus('error', 'Permission denied — allow notifications in browser settings'); return; }
+
   swReg = await registerSW();
   if (!swReg) { updateStatus('error', 'Service Worker not supported — try adding app to home screen first'); return; }
-  localStorage.setItem('fw_notifs', '1');
-  scheduleNext();             // pre-fetch alarm at 10 PM
-  scheduleNextNotification(); // notification alarm at 7 AM
-  updateStatus('active', 'Daily notifications enabled — 7 AM Pacific every day');
+
+  try {
+    // Subscribe to push using VAPID public key
+    const subscription = await swReg.pushManager.subscribe({
+      userVisibleOnly: true,
+      applicationServerKey: urlBase64ToUint8Array(VAPID_PUBLIC_KEY)
+    });
+
+    // Send subscription to our server
+    const res = await fetch('/api/subscribe', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(subscription)
+    });
+
+    if (!res.ok) throw new Error('Failed to save subscription on server');
+
+    localStorage.setItem('fw_notifs', '1');
+    updateStatus('active', 'Daily dispatch enabled — 7 AM Pacific every morning');
+    console.log('Push subscription saved to server.');
+  } catch(err) {
+    console.error('Push subscription error:', err);
+    updateStatus('error', 'Could not enable push: ' + err.message);
+  }
 }
 
-function isPDT(date) {
-  const y = date.getFullYear();
-  const mkSun = (mo, n) => {
-    const d = new Date(y, mo, 1);
-    d.setDate((7 - d.getDay()) % 7 + (n - 1) * 7 + 1);
-    return d;
-  };
-  return date >= mkSun(2, 2) && date < mkSun(10, 1);
-}
-
-function msUntilSevenAMPST() {
-  const now = new Date();
-  const off = isPDT(now) ? -7 : -8;
-  const utc = now.getTime() + now.getTimezoneOffset() * 60000;
-  const pst = utc + off * 3600000;
-  const pstNow = new Date(pst);
-  const target = new Date(pst);
-  target.setHours(7, 0, 0, 0);
-  if (pstNow.getHours() >= 7) target.setDate(target.getDate() + 1);
-  const targetLocal = target.getTime() - off * 3600000 - now.getTimezoneOffset() * 60000;
-  return Math.max(targetLocal - Date.now(), 5000);
-}
-
-function msUntilHourPST(hour) {
-  const now = new Date();
-  const off = isPDT(now) ? -7 : -8;
-  const utc = now.getTime() + now.getTimezoneOffset() * 60000;
-  const pst = utc + off * 3600000;
-  const pstNow = new Date(pst);
-  const target = new Date(pst);
-  target.setHours(hour, 0, 0, 0);
-  if (pstNow.getHours() >= hour) target.setDate(target.getDate() + 1);
-  const targetLocal = target.getTime() - off * 3600000 - now.getTimezoneOffset() * 60000;
-  return Math.max(targetLocal - Date.now(), 5000);
-}
-
-function scheduleNext() {
-  // ALARM 1: Pre-fetch at 10 PM PST the night before
-  // This silently fetches and caches tomorrow's quote
-  const msPrefetch = msUntilHourPST(22);
-  console.log(`Pre-fetch scheduled in ~${Math.round(msPrefetch / 3600000)}h`);
-  setTimeout(async () => {
-    console.log("Pre-fetching tomorrow's quote at 10 PM...");
-    await fetchQuote(true); // fetch & cache silently, no notification
-    scheduleNextNotification();
-    scheduleNext(); // reschedule for next night
-  }, msPrefetch);
-}
-
-function scheduleNextNotification() {
-  // ALARM 2: Fire notification at 7 AM from cache — instant, no API call
-  const ms7am = msUntilHourPST(7);
-  console.log(`Notification scheduled in ~${Math.round(ms7am / 3600000)}h`);
-  setTimeout(() => {
-    console.log("Firing 7 AM notification from cache...");
-    sendNotification();
-  }, ms7am);
-}
-
-function sendNotification() {
-  const q = getCache();
-  if (!swReg?.active || !q) return;
-  swReg.active.postMessage({
-    type: 'SHOW_NOTIFICATION',
-    title: `Today's Wisdom · ${q.author}`,
-    body: `"${q.quote.substring(0, 110)}${q.quote.length > 110 ? '…' : ''}" — Open for modern translation & context.`
-  });
-}
-
-// ─── iOS install banner ───────────────────────────────────────
+// ─── iOS install banner ────────────────────────────────────────
 function checkInstallPrompt() {
   const isIOS = /iphone|ipad|ipod/i.test(navigator.userAgent);
   const isStandalone = window.navigator.standalone === true;
   if (isIOS && !isStandalone) document.getElementById('installBanner').classList.add('show');
 }
 
-// ─── Init ─────────────────────────────────────────────────────
+// ─── Init ──────────────────────────────────────────────────────
 async function init() {
   checkInstallPrompt();
-
   const apiKey = getKey();
-  if (apiKey) {
-    fetchQuote(false);
-  } else {
-    showSetup();
-  }
+  if (apiKey) { fetchQuote(false); } else { showSetup(); }
 
-  // Restore notification schedule if previously enabled
   if (localStorage.getItem('fw_notifs') === '1' && Notification.permission === 'granted') {
     swReg = await registerSW();
-    if (swReg) {
-      scheduleNext();        // pre-fetch alarm at 10 PM
-      scheduleNextNotification(); // notification alarm at 7 AM
-      updateStatus('active', 'Daily notifications enabled — 7 AM Pacific every day');
-    }
+    updateStatus('active', 'Daily dispatch enabled — 7 AM Pacific every morning');
   }
 
   document.getElementById('btnSaveKey').addEventListener('click', () => {
     const k = document.getElementById('apiKeyInput').value.trim();
-    if (!k.startsWith('sk-ant')) {
-      alert('That doesn\'t look right — Anthropic API keys start with sk-ant-...');
-      return;
-    }
-    saveKey(k);
-    document.getElementById('apiSetup').style.display = 'none';
-    fetchQuote(false);
+    if (!k.startsWith('sk-ant')) { alert("That doesn't look right — Anthropic API keys start with sk-ant-..."); return; }
+    saveKey(k); document.getElementById('apiSetup').style.display = 'none'; fetchQuote(false);
   });
 
   document.getElementById('btnEnable').addEventListener('click', enableNotifications);
@@ -883,9 +782,11 @@ async function init() {
     const currentIdx = cached ? PEOPLE.indexOf(cached.author) : getTodayPersonIndex();
     fetchQuote(true, getRandomPersonIndex(currentIdx));
   });
-  document.getElementById('btnPreview').addEventListener('click', () => {
+  document.getElementById('btnPreview').addEventListener('click', async () => {
     if (!localStorage.getItem('fw_notifs')) { alert('Enable notifications first, then try preview.'); return; }
-    sendNotification();
+    // Trigger server to send a test notification now
+    const res = await fetch('/api/notify');
+    if (res.ok) { alert('Preview notification sent!'); } else { alert('Could not send preview — check console.'); }
   });
 }
 
