@@ -1,4 +1,4 @@
-const CACHE_NAME = 'american-gazette-v2';
+const CACHE_NAME = 'founding-wisdom-v3';
 
 self.addEventListener('install', e => self.skipWaiting());
 self.addEventListener('activate', e => e.waitUntil(clients.claim()));
