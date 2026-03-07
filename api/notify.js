@@ -83,7 +83,7 @@ export default async function handler(req, res) {
     console.log(`${subKeys.length} subscribers`);
 
     const payload = JSON.stringify({
-      title: `American Gazette · ${quote.author}`,
+      title: `Founding Wisdom · ${quote.author}`,
       body: `"${quote.quote.substring(0, 110)}${quote.quote.length > 110 ? '…' : ''}" — Tap to read.`,
       icon: '/icon-192.png',
       tag: 'daily-quote',
