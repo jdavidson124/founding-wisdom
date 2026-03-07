@@ -680,12 +680,39 @@ const setCache  = q  => localStorage.setItem(todayKey(), JSON.stringify(q));
 function getTodayPersonIndex() { return Math.floor(Date.now() / 86400000) % 5; }
 function getRandomPersonIndex(exclude) { let i; do { i = Math.floor(Math.random()*5); } while(i===exclude); return i; }
 
-// ─── Fetch quote from Claude API ──────────────────────────────
+// ─── Fetch quote ───────────────────────────────────────────────
+// Priority: 1) local cache  2) server cache (Upstash)  3) Claude API directly
 async function fetchQuote(forceNew = false, personOverride = null) {
   const apiKey = getKey();
   if (!apiKey) { showSetup(); return; }
-  if (!forceNew) { const cached = getCache(); if (cached) { renderQuote(cached); return; } }
+
+  // 1. Check local cache first (unless forcing new)
+  if (!forceNew) {
+    const cached = getCache();
+    if (cached) { renderQuote(cached); return; }
+  }
+
   showLoading();
+
+  // 2. Try server cache from Upstash (what the cron already fetched)
+  if (!forceNew && personOverride === null) {
+    try {
+      const res = await fetch('/api/quote');
+      if (res.ok) {
+        const data = await res.json();
+        if (data.quote) {
+          setCache(data.quote);
+          renderQuote(data.quote);
+          console.log('Loaded quote from server cache');
+          return;
+        }
+      }
+    } catch(e) {
+      console.log('Server cache miss, falling back to API:', e.message);
+    }
+  }
+
+  // 3. Fall back to calling Claude directly
   const personIdx = personOverride !== null ? personOverride : getTodayPersonIndex();
   const person = PEOPLE[personIdx];
   try {
