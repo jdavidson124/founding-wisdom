@@ -707,7 +707,7 @@ function getTodayPersonIndex() { return Math.floor(Date.now() / 86400000) % 5; }
 function getRandomPersonIndex(exclude) { let i; do { i = Math.floor(Math.random()*5); } while(i===exclude); return i; }
 
 // ─── Fetch quote ───────────────────────────────────────────────
-// Priority: 1) local cache  2) server cache (Upstash)  3) Claude API directly
+// Priority: 1) local cache  2) server cache (Upstash, with timeout)  3) Claude API
 async function fetchQuote(forceNew = false, personOverride = null) {
   const apiKey = getKey();
   if (!apiKey) { showSetup(); return; }
@@ -720,29 +720,34 @@ async function fetchQuote(forceNew = false, personOverride = null) {
 
   showLoading();
 
-  // 2. Try server cache from Upstash (what the cron already fetched)
+  // 2. Try server cache — with a 4s timeout so it never hangs
   if (!forceNew && personOverride === null) {
     try {
-      const res = await fetch('/api/quote');
+      const controller = new AbortController();
+      const timer = setTimeout(() => controller.abort(), 4000);
+      const res = await fetch('/api/quote', { signal: controller.signal });
+      clearTimeout(timer);
       if (res.ok) {
         const data = await res.json();
         if (data.quote) {
           setCache(data.quote);
           renderQuote(data.quote);
-          console.log('Loaded quote from server cache');
           return;
         }
       }
     } catch(e) {
-      console.log('Server cache miss, falling back to API:', e.message);
+      console.log('Server cache unavailable, calling Claude directly:', e.message);
     }
   }
 
-  // 3. Fall back to calling Claude directly
+  // 3. Call Claude API directly
   const personIdx = personOverride !== null ? personOverride : getTodayPersonIndex();
   const person = PEOPLE[personIdx];
   try {
+    const controller = new AbortController();
+    const timer = setTimeout(() => controller.abort(), 30000); // 30s max
     const res = await fetch("https://api.anthropic.com/v1/messages", {
+      signal: controller.signal,
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -757,13 +762,23 @@ async function fetchQuote(forceNew = false, personOverride = null) {
         messages: [{ role: "user", content: `Give me a real, historically verified quote from ${person}. Choose one that is meaningful but not their most famous.` }]
       })
     });
-    if (!res.ok) { const err = await res.json().catch(() => ({})); throw new Error(err.error?.message || `API error ${res.status}`); }
+    clearTimeout(timer);
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({}));
+      throw new Error(err.error?.message || `API error ${res.status}`);
+    }
     const data = await res.json();
     const raw = data.content.map(b => b.text || '').join('').replace(/```json|```/g, '').trim();
     const quote = JSON.parse(raw);
     setCache(quote);
     renderQuote(quote);
-  } catch(err) { showError(err.message); }
+  } catch(err) {
+    if (err.name === 'AbortError') {
+      showError('Request timed out — check your connection and try again');
+    } else {
+      showError(err.message);
+    }
+  }
 }
 
 // ─── Render ────────────────────────────────────────────────────
