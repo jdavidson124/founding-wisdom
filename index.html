@@ -567,7 +567,7 @@ body {
     <div class="masthead-date-row">
       <span id="todayDateLeft">Vol. I</span>
       <span>❖ We the People ❖</span>
-      <span>Daily at 7 o'Clock · Morning</span>
+      <span>Daily at 8 o'Clock · Morning</span>
     </div>
   </div>
 
@@ -637,7 +637,7 @@ body {
     </div>
   </div>
 
-  <div class="colophon">Founding Wisdom &nbsp;·&nbsp; Published Daily &nbsp;·&nbsp; Boston &nbsp;·&nbsp; 7 o'Clock in the Morning, Pacific Time</div>
+  <div class="colophon">Founding Wisdom &nbsp;·&nbsp; Published Daily &nbsp;·&nbsp; Boston &nbsp;·&nbsp; 8 o'Clock in the Morning, Pacific Time</div>
 
 </div>
 </div>
@@ -656,24 +656,28 @@ const PORTRAITS = {
 
 const AUTHOR_DATES = {"John Adams": "1735–1826", "Thomas Paine": "1737–1809", "Samuel Adams": "1722–1803", "Mercy Otis Warren": "1728–1814", "Abigail Adams": "1744–1818"};
 
-function buildSystemPrompt(personIndex) {
+function buildSystemPrompt(personIndex, seenQuotes = []) {
   const people = ["John Adams","Thomas Paine","Samuel Adams","Mercy Otis Warren","Abigail Adams"];
   const assigned = people[personIndex];
+  const seenBlock = seenQuotes.length > 0
+    ? `\n\nYou have already shown the user these quotes from ${assigned} — do NOT repeat any of them:\n${seenQuotes.map((q,i) => `${i+1}. "${q}..."`).join('\n')}`
+    : '';
   return `You are a historian and plain-language educator. You MUST select a real, historically verified quote from this specific person: ${assigned}. Do not choose anyone else — only ${assigned}.
 
-The quote MUST be inspirational — about personal courage, perseverance, resilience, integrity, hard work, or the human spirit. Think along the lines of Thomas Paine's "The harder the conflict, the more glorious the triumph" — quotes that fire you up or make you reflect on your own character.
+The quote MUST be inspirational — about personal courage, perseverance, resilience, integrity, hard work, or the human spirit. Think along the lines of Thomas Paine\'s "The harder the conflict, the more glorious the triumph" — quotes that fire you up or make you reflect on your own character.
 
 Do NOT select quotes primarily about: government structure, taxation, legislation, constitutions, political parties, or policy. Avoid anything that reads like a civics lesson.
 
-Pick a lesser-known quote — not the most famous one everyone already knows.
+Pick a lesser-known quote — not the most famous one everyone already knows. Dig deep into their letters, speeches, pamphlets, and diaries for something fresh and unexpected.${seenBlock}
 
 Respond ONLY with a valid JSON object, no markdown, no backticks, no explanation:
 {
   "author": "${assigned}",
   "quote": "The exact historical quote",
   "date": "Approximate date or year (e.g. 'December 1776' or 'c. 1772')",
-  "modern": "A plain, conversational rewrite of what they meant in today's language — 2 to 4 sentences",
+  "modern": "A plain, conversational rewrite of what they meant in today\'s language — 2 to 4 sentences",
   "context": "2 to 3 sentences of historical context: what was happening at the time, why they said it, why it mattered"
+}`;
 }`;
 }
 
@@ -682,7 +686,22 @@ const saveKey  = k  => localStorage.setItem('fw_api_key', k);
 const getKey   = () => localStorage.getItem('fw_api_key') || '';
 const todayKey = () => { const d = new Date(); return `fw_quote_${d.getFullYear()}_${d.getMonth()}_${d.getDate()}`; };
 const getCache  = () => { try { return JSON.parse(localStorage.getItem(todayKey())); } catch { return null; } };
-const setCache  = q  => localStorage.setItem(todayKey(), JSON.stringify(q));
+const setCache  = q  => {
+  localStorage.setItem(todayKey(), JSON.stringify(q));
+  // Track quote history to avoid repeats — store last 60 quote snippets per author
+  try {
+    const hist = getHistory();
+    if (!hist[q.author]) hist[q.author] = [];
+    const snippet = q.quote.substring(0, 60);
+    if (!hist[q.author].includes(snippet)) {
+      hist[q.author].push(snippet);
+      if (hist[q.author].length > 60) hist[q.author].shift(); // keep last 60
+    }
+    localStorage.setItem('fw_history', JSON.stringify(hist));
+  } catch(e) {}
+};
+const getHistory = () => { try { return JSON.parse(localStorage.getItem('fw_history')) || {}; } catch { return {}; } };
+const getSeenQuotes = (author) => getHistory()[author] || [];
 
 function getTodayPersonIndex() { return Math.floor(Date.now() / 86400000) % 5; }
 function getRandomPersonIndex(exclude) { let i; do { i = Math.floor(Math.random()*5); } while(i===exclude); return i; }
@@ -734,7 +753,7 @@ async function fetchQuote(forceNew = false, personOverride = null) {
       body: JSON.stringify({
         model: "claude-sonnet-4-20250514",
         max_tokens: 1000,
-        system: buildSystemPrompt(personIdx),
+        system: buildSystemPrompt(personIdx, getSeenQuotes(PEOPLE[personIdx])),
         messages: [{ role: "user", content: `Give me a real, historically verified quote from ${person}. Choose one that is meaningful but not their most famous.` }]
       })
     });
@@ -858,7 +877,7 @@ async function enableNotifications() {
     if (!res.ok) throw new Error('Server could not save subscription (status ' + res.status + ')');
 
     localStorage.setItem('fw_notifs', '1');
-    updateStatus('active', 'Daily dispatch enabled — 7 AM Pacific every morning');
+    updateStatus('active', 'Daily dispatch enabled — 8 AM Pacific every morning');
     console.log('Push subscription registered successfully.');
   } catch(err) {
     console.error('Push subscription error:', err);
@@ -881,7 +900,7 @@ async function init() {
 
   if (localStorage.getItem('fw_notifs') === '1' && Notification.permission === 'granted') {
     swReg = await registerSW();
-    updateStatus('active', 'Daily dispatch enabled — 7 AM Pacific every morning');
+    updateStatus('active', 'Daily dispatch enabled — 8 AM Pacific every morning');
   }
 
   document.getElementById('btnSaveKey').addEventListener('click', () => {
